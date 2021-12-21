@@ -122,8 +122,12 @@ line/.style={-latex},
 
 % colored box around code
 \newenvironment{code}[1][]{%
-\begin{prebox}[#1]\obeylines}{%
-\end{prebox}}
+\begin{prebox}[#1]\obeylines%
+\fontdimen2\font=0.9ex% inter word space
+}{%
+\end{prebox}%
+\fontdimen2\font=0.6ex% inter word space
+}
 
 % box with modifiable size
 \newenvironment{codem}[1][\linewidth]{%
@@ -147,17 +151,26 @@ line/.style={-latex},
 \newcommand{\sprompt}{\textcolor{blue}{\textbf{>}\ }}
 \newcommand{\kw}[1]{\textcolor{magenta}{\textbf{#1}}}
 % shell/simics script/python comment
-\newcommand{\cmt}[1]{\textcolor{Sepia}{\textbf{\#\ #1}}}
+\newcommand{\cmtcommon}[1]{\textcolor{Sepia}{\textbf{#1}}}
+\newcommand{\cmt}[1]{\cmtcommon{\#\ #1}}
 % DML/C comment:
-\newcommand{\cmtd}[1]{\textcolor{Sepia}{{\bseries/\,/\ #1}}}
+\newcommand{\cmtd}[1]{\cmtcommon{/\,/\ #1}}
 \newcommand{\p}[1]{\textit{\large#1}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \fontdimen2\font=0.6ex% inter word space
 
-\newcommand{\Simics}{\textcolor{blue}{Simics}}
+\newcommand{\vshort}[1]{%
+\vspace{-0.6em}%
+#1%
+\vspace{-0.3em}}
+
+% This document specific declarations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{underscore}  % underscore is often used in code here
+\newcommand{\Simics}{\textcolor{cyan}{\textbf{Simics}}}
 
 \newlength{\MyLen}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
@@ -277,7 +290,7 @@ line/.style={-latex},
 
     To debug chain of called auxiliary scripts \cod{include}s:
     \begin{code}
-        \prompt ./simics -list-script targets/\p{platf/platf.simics}
+        \prompt ./simics -script-trace targets/\p{platf/platf.simics}
     \end{code}
 
 \subsection{Printing device structure}
@@ -364,11 +377,25 @@ stop-command-line-capture
             \cod{read-configuration \p{"checkpoint\_name"}} & — restore it back
 \end{tabular}
 
+\subsection{Model information}
+
+\begin{code}
+    \sprompt help \p{platf.mydef}  \cmt{Documentation + information about class\&module}
+    \sprompt list-attributes \p{platf.myDev}  \cmt{pretty-print device attributes with values}
+\end{code}
+
+\subsection{Environment}
+\begin{code}
+    \sprompt version  \cmt{list of installed packages}
+    \prompt ./simics -v \cmt{the same}
+    \sprompt pwd \cmt{current directory where simics is running}
+\end{code}
+
 \subsection{Making images}
 
 \newpage
 
-\section{\Simics{} DML 1.4 \& API}
+\section{\Simics{} DML 1.4 Programming \& API}
 
 \subsection{Documentation}
 \settowidth{\MyLen}{\texttt{dml-1.4-reference-manual}}
@@ -421,23 +448,25 @@ Assignments are equivalent to casts and hence can truncate:
             local uint8 x = 0xffff  \cmtd{results in x == 0xff}
         \end{code}
 
-\begin{code}
-            local uint16 $i$ = 0x7fff; local int8 $j$ = 2;
+        All aritmetic operators like $+$, $*$ convert its operands to int64:
+        \begin{code}
+            local uint16 $i$ = 0x7fff; local int8 $j$ = 2;  \cmtd{let us sum them:}
             \vspace{0.1cm}
-            local int16 \tikzmark{b} $x$ = $\overbrace{\ind i + j \ind \tikzmark{a}}^{\text{calculated as int64(0x8001)}}$; \DrawBottomReverse{black}{truncated to int16} \cmtd{results in $x == 1$}
-            \vspace{0.4cm}
-\end{code}
+            local int16 \tikzmark{b} $x$ = $\overbrace{\ind i + j; \ind }^{\text{calculated as int64 $\rightarrow$ 0x8001} \tikzmark{a}}$ \DrawBottomReverse{black}{truncated to int16} \cmtd{finally results in $x == 1$}
+            \vspace{0.3cm}
+        \end{code}
 
 
 \subsubsection{Comparisons act as uint64 or int64: $==$, $<$, $<=$}
-In comparison int64 - uint64 the operands are cast to int64.
+Comparisons on only uint64 act as proper uint64, however
+in comparisons int64 vs. uint64 the operands are converted to int64!
 
         \begin{code}
             local uint64 u;
             u = -1; \ind \cmtd{equivalent to u = cast(-1, uint64) $\mathbf{= 2^{64}-1}$, all ones}
             \begin{tabular}{@{}ll}
                 u == -1 & \cmtd{FALSE! Equivalent to int64(u) == int64(-1),} \\
-                        & \cmtd{where the upper bit of u is cropped ($\mathbf{2^{63}-1}$).}
+                        & \cmtd{where upper bit is cropped: int64(u) == ($\mathbf{2^{63}-1}$).}
             \end{tabular}
             u == cast(-1, uint64) \cmtd{true. As comparison is between two uint64}
             u > -1 \ind \cmtd{true, but unlike C! it's int64(u) > int64(-1): $\mathbf{2^{63}-1>1}$}
@@ -491,22 +520,19 @@ In comparison int64 - uint64 the operands are cast to int64.
             \begin{codem}[3cm]
                 connect $C_A$ \{
                   \ind interface $Out_1$ \{
-                      \vspace{-0.6em}
-                    \ind\ind ...
-                      \vspace{-0.3em}
+                      \vshort{\ind\ind ...}
                   \ind \}
                   \ind interface $Out_2$ \{
-                      \vspace{-0.6em}
-                    \ind\ind ...
-                      \vspace{-0.3em}
+                      \vshort{\ind\ind ...}
                   \ind \}
                 \}
                 connect $C_B$ \{
                   \ind interface $Out_2$ \{
-                      \vspace{-0.6em}
-                    \ind\ind ...
+                    \vshort{\ind\ind ...}
+                    %  \vspace{-0.6em}
+                    %\ind\ind ...
             \end{codem}
-            \\[1.9cm]  % selected by trial
+            \\[1.4cm]  % selected by trial
         \cod{implement} &
             \begin{codem}[2.5cm]
                 implement $In_1$ \{
@@ -520,8 +546,7 @@ In comparison int64 - uint64 the operands are cast to int64.
             \begin{codem}[3cm] 
                 port $P_A$ \{
                 \ind implement $In_1$ \{
-                    \ind\ind ...
-                      \vspace{-0.3em}
+                    \vshort{\ind\ind ...}
                 \ind\}
                 \ind implement $In_2$ \{
                     \ind\ind \emph{... variant 1 ...}
@@ -594,12 +619,12 @@ To debug simics and its modules itself:
             floating      & f & double \\
             string        & s & char* \\
             object        & o & conf\_object\_t \\
-            list          & [$x_1..x_n$] & fixed-width list with types $x_1..x_n$ \\
+            list          & [$x_1..x_n$] & fixed-width tuple with types $x_1..x_n$ \\
             list          & [$x*$] & arbitrary-width array of $x$ \\
             list          & [$x+$] & non-empty arbitrary-width array
                                      of $x$ \\
             list          & $[x\{m:n\}]$ & array with $m ≤ size ≤ n$ \\
-            list          & $[x\{n\}]$ & fixed-width array with $n$
+            list          & $[x\{n\}]$ & fixed-width tuple with $n$
                                          elements of $x$ \\
             dict          & D & array of attr\_dict\_pair\_t \\
             data          & d & uint8* \\
@@ -626,7 +651,7 @@ To debug simics and its modules itself:
         Create object at 1st platform init & - & - \\
         Load checkpoint & - & + \\
         Load micro-checkpoint (reverse execution) & + & + \\
-        Manual attribute assignment (hot plug) & + & - \\
+        Manual attribute assignment (hot plug from \Simics{} command line) & + & - \\
         \hline
     \end{tabulary}
 
@@ -634,7 +659,27 @@ To debug simics and its modules itself:
 
 \subsection{Compile-time statements \& conditional compilation}
 
+\subsection{Hash tables}
+
+        \begin{code}
+            \kw{import} "simics/util/hashtab.dml";
+            \vshort{...}
+            \kw{local} ht\_str\_table\_t tab;  \cmtd{str — string (aka const char*) keys.}
+            ht\_init\_str\_table(\kw{\&}tab, \cmtcommon{/*keys\_owned*/} true);
+            local double \kw{*}value = new double;  \kw{*}value = 10.0;
+            ht_insert_str(\kw{\&}table, "key", cast(value, void\kw{*}));
+            local double \kw{*}get_back = cast(ht_lookup_str(\kw{\&}tab, "key"), double\kw{*});
+            assert \kw{*}get_back == 10.0
+        \end{code}
+        There are also tables for \cod{int} keys or general (\cod{common}) keys.
+
+\subsection{The secret of DML}
+        Many "internal" features like registers and even connects are actually
+        normal templates for objects (\cod{\kw{is} object;}) in plain DML
+        defined in \texttt{1.4/dml-builtins.dml} and thus they can be expanded.
+
 \newpage
+
 
 \section{\Simics{} configuration and build system}
 

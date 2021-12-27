@@ -145,7 +145,13 @@ line/.style={-latex},
 \newenvironment{code9}{\begin{codem}[0.9\linewidth]}{\end{codem}}
 
 % inline color box for code
-\newcommand{\cod}[1]{\colorbox{green!15}{#1}}
+\newcommand{\cod}[1]{\tcbox[
+    size=fbox,
+    on line,
+    colback=green!15,
+    colframe=black,
+    arc=0.3em  % rounded corners
+]{#1}}
 
 % Syntax highlighting for code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\ind}{\hphantom{~~~}}
@@ -526,22 +532,21 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 
     \subsubsection{Interfaces}
 
-    Definition in DML:
+    Definition in \cod{.dml}:
     \begin{code}
         extern typedef struct \{
-           \ind method \p{name}(conf_object_t *obj, \p{$type_1$ $value_1$})
-           \ind \ind -> \p{out_type};
+           \ind method \p{name}(\p{$type_1$ $value_1$}) -> \p{out_type};
         \} \p{sample}_interface_t;
     \end{code}
 
     Obligatory definition in C \cod{.h} file:
     \begin{code}
-        SIM_INTERFACE(\p{sample}) \{  \cmtd{also typedef struct}
-            \p{out_type} (*\p{name})(conf_object_t *obj, \p{$type_1$ $value_1$});
+        SIM_INTERFACE(\p{sample}) \{  \cmtd{essentially 'typedef struct' also}
+            \ind \p{out_type} (*\p{name})(conf_object_t *obj, \p{$type_1$ $value_1$});
         \}
     \end{code}
 
-    \subsubsection{\cod{connect}s and \cod{implement}s}
+    \subsubsection{Explaining \cod{connect}s and \cod{implement}s}
 
     \begin{itemize}
         \item \cod{connect}s are for \textbf{out}bound calls

@@ -177,6 +177,7 @@ line/.style={-latex},
 \vspace{-0.3em}}
 
 % This document specific declarations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\local}{\kw{local} }
 \usepackage{underscore}  % underscore is often used in code here
 \newcommand{\Simics}{\textcolor{cyan}{\textbf{Simics}}}
 
@@ -195,7 +196,7 @@ line/.style={-latex},
 \section{\Simics{} Usage}
 
 \subsection{Glossary \& Documentation}
-    \settowidth{\MyLen}{\textit{organization.}}
+    \settowidth{\MyLen}{\textit{[simics]-script.}}
     \begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
     %\begin{tabular}{@{}p{\the\MyLen}@{}p{\linewidth-\the\MyLen}@{}}
         \textit{\Simics{} Base} & \cod{simics} executable + the set of
@@ -360,14 +361,20 @@ break-hap Core-Magic-Instruction
 
 \subsection{Examining current state}
 
-\subsection{x86-specific commands}
+\begin{tabular}{ll}
+    pselect & show currently running CPU \\
+    memory-map & print all mapped devices \\
+    pregs & print all CPU registers \\
+    probe-address \p{addr} & path to target \p{addr}
+\end{tabular}
+
+\subsection{x86-specific and platform-specific commands}
 
 \begin{tabular}{ll}
     memory-trace \p{addr} & path to target \p{addr} \\
-    memory-map & print all mapped devices \\
-    ? reset-button-press & to reboot the target \\
+    pregs & to know x86 mode (16/32/64-bit), 1st line \\
+    reset-button-press & to reboot the target \\
     power-button-press & to press power button \\
-    (pselect).pregs & to know x86 mode (16/32/64-bit, etc)
 \end{tabular}
 
 \subsection{Moving files target \texorpdfstring{$\longleftrightarrow$}{<->} host}
@@ -385,14 +392,14 @@ break-hap Core-Magic-Instruction
 \subsection{Saving info}
 Save logs from current point
 \begin{code}
-? start-command-line-capture
+\sprompt start-command-line-capture
 \end{code}
 
 Save simics variables to file
 \begin{code}
-start-command-line-capture
-list-variables
-stop-command-line-capture
+\sprompt start-command-line-capture
+\sprompt list-variables
+\sprompt stop-command-line-capture
 \end{code}
 
 \subsection{Check points}
@@ -426,20 +433,23 @@ stop-command-line-capture
 
 \newpage
 
-\section{\Simics{} DML 1.4 Programming \& API}
+\section{\Simics{} DML 1.4 Programming \& C/DML API}
 
 \subsection{Glossary \& Documentation}
-    \settowidth{\MyLen}{\texttt{dml-1.4-reference-manual}}
+    \settowidth{\MyLen}{\texttt{dml-1.4-reference-man}}
     %\begin{tabulary}{\linewidth}{p{4cm}L}
     \begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
         \textit{DML}         & Device Modelling Language (its compiler 
         is included into \Simics{} Base) used for writing (fast) devices
         \\
+        \kw{device}          & any \Simics{} class for modelling real
+        devices. Different \Simics{} devices communicate via interfaces
+        \\
         \textit{Model Builder User’s Guide} & overview of Simics/DML
         programming \\
         \textit{DML 1.4 Reference Manual} & language specification \\
         \textit{API Reference Manual} & API function list for DML \& C,
-        ownership rules
+        describes ownership rules
     \end{tabular}
 
 \subsection{Create stub device}
@@ -479,14 +489,14 @@ The generated C \kw{struct} name is \cod{\p{sample}\_interface\_t}.
 
 Assignments are equivalent to casts and hence can truncate:
         \begin{code}
-            local uint8 x = 0xffff  \cmtd{results in x == 0xff}
+            \local uint8 x = 0xffff  \cmtd{results in x == 0xff}
         \end{code}
 
         All aritmetic operators like $+$, $*$ convert its operands to int64:
         \begin{code}
-            local uint16 $i$ = 0x7fff; local int8 $j$ = 2;  \cmtd{let us sum them:}
+            \local uint16 $i$ = 0x7fff; \local int8 $j$ = 2;  \cmtd{let us sum them:}
             \vspace{0.1cm}
-            local int16 \tikzmark{b} $x$ = $\overbrace{\ind i + j; \ind }^{\text{calculates as int64 $\rightarrow$ 0x8001} \tikzmark{a}}$ \DrawBottomReverse{black}{truncates to int16} \cmtd{finally results in $x == 1$}
+            \local int16 \tikzmark{b} $x$ = $\overbrace{\ind i + j; \ind }^{\text{calculates as int64 $\rightarrow$ 0x8001} \tikzmark{a}}$ \DrawBottomReverse{black}{truncates to int16} \cmtd{finally results in $x == 1$}
             \vspace{0.3cm}
         \end{code}
 
@@ -496,7 +506,7 @@ Comparisons on only uint64 act as proper uint64, however
 in comparisons int64 vs. uint64 the operands are converted to int64!
 
         \begin{code}
-            local uint64 u;
+            \local uint64 u;
             u = -1; \ind \cmtd{equivalent to u = cast(-1, uint64) $\mathbf{= 2^{64}-1}$, all ones}
             \begin{tabular}{@{}ll}
                 u == -1 & \cmtd{FALSE! Equivalent to int64(u) == int64(-1),} \\
@@ -518,15 +528,15 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 
 \rowcolors{2}{gray!15}{white}
     \global\rownum=1\relax
-    \begin{tabulary}{\linewidth}{|llll|}
+    \begin{tabulary}{\linewidth}{|LLLLL|}
         \hline
-        DML construct & checkpointed & address mapped & fields \\
+        DML construct & checkpointed & fields & address-mapped & arbitrary data\\
         \hline
-        session & - & - & - \\
-        saved & + & - & - \\
-        attributes & + & - & - \\
-        unmapped register & + & - & + \\
-        {[}normal{]} register & + & + & + \\
+        session & - & - & - & + \\
+        saved & + & - & - & - \\
+        attributes & + & - & - & + \\
+        unmapped register & + & + & - & - \\
+        {[}normal{]} register & + & + & + & - \\
         \hline
     \end{tabulary}
 
@@ -648,15 +658,20 @@ To debug simics and its modules itself:
 
 
 \subsection{Attribute values}
+    \cod{attr_value_t} is a C union that can hold one of a
+    few predefined types.
 
     %There are only these 7 types of \cod{attr\_value\_t}:
-    Attributes are allocated by \cod{SIM\_make\_attr\_\p{T}}, where
-    \p{T} is one of:
+    Attributes values are allocated/packed by:\\
+    \cod{attr_value_t x = \textbf{SIM_make_attr_\p{T}}(\p{cType} val)},
+    and extracted by:\\
+    \cod{\p{cType} \ind \ind val = \textbf{SIM_attr_\p{T}}(x)}, where
+    \p{T} and \p{cType} can be:
 
         \global\rownum=0\relax
         \begin{tabulary}{\linewidth}{|LLL|}
             \hline
-            \p{T}         & type spec & DML/C type \\
+            \p{T}         & type spec & \p{cType} — DML/C type \\
             \hline
             uint64, int64 & i & uint64, int64 \\
             boolean       & b & bool \\
@@ -677,9 +692,10 @@ To debug simics and its modules itself:
             \hline
         \end{tabulary}
 
+    List items are accessed by \cod{SIM_attr_list_item}.
     Type specs can be OR'ed as \cod{$x_1$\kw{|}$x_2$}.
     Type spec is used in \cod{\kw{param} type = "..."}. For first 4
-    types there are pre-defined templates \cod{uint64\_attr},
+    types there are predefined DML templates \cod{uint64\_attr},
     \cod{int64\_attr}, \cod{bool\_attr}, \cod{double\_attr}.
 
     \renewcommand\_{\textunderscore\linebreak[1]}
@@ -708,11 +724,11 @@ To debug simics and its modules itself:
         \begin{code}
             \kw{import} "simics/util/hashtab.dml";
             \vshort{...}
-            \kw{local} ht\_str\_table\_t tab;  \cmtd{str — string (aka const char*) keys.}
+            \local ht\_str\_table\_t tab;  \cmtd{str — string (aka const char*) keys.}
             ht\_init\_str\_table(\kw{\&}tab, \cmtcommon{/*keys\_owned*/} true);
-            local double \kw{*}value = new double;  \kw{*}value = 10.0;
+            \local double \kw{*}value = new double;  \kw{*}value = 10.0;
             ht_insert_str(\kw{\&}table, "key", cast(value, void\kw{*}));
-            local double \kw{*}get_back = cast(ht_lookup_str(\kw{\&}tab, "key"), double\kw{*});
+            \local double \kw{*}get_back = cast(ht_lookup_str(\kw{\&}tab, "key"), double\kw{*});
             assert \kw{*}get_back == 10.0
         \end{code}
         There are also tables for \cod{int} keys or general (\cod{common}) keys.
@@ -722,19 +738,28 @@ To debug simics and its modules itself:
         normal templates for objects (\cod{\kw{is} object;}) in plain DML
         defined in \texttt{1.4/dml-builtins.dml} and thus they can be expanded.
 
+\subsection{C API}
+
+It's possible to do most things in C, e.g. create device by
+\cod{SIM_create_object}, though normally it's done from Python components.
+
 \newpage
 
 
 \section{\Simics{} configuration and build system}
 
 \subsection{Glossary \& Documentation}
-    \settowidth{\MyLen}{\texttt{dml-1.4-reference-manual}}
+    \settowidth{\MyLen}{\texttt{Components}}
     %\begin{tabulary}{\linewidth}{p{4cm}L}
     \begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
         \textit{Python}      & this language is used for connecting 
-        devices together, for writing some (slow) devices, for 
-        unit-testing
+        devices together (writing components), for writing
+        some (slow) devices, for unit-testing
         \\
+        \textit{Component}  & a special \Simics{} class that implement:
+        required: \cod{component} interface
+        optional: \cod{component_connector} interface
+
     \end{tabular}
 
 \subsection{Creating devices dynamically}
@@ -745,7 +770,11 @@ To debug simics and its modules itself:
 \end{code}
 
 \subsection{Modules/Components/Classes}
-Modules consist of classes (aka devices) or/and components.
+A \Simics{} module includes classes, there are 2 types of them:
+        \begin{itemize}
+            \item devices, typically written in DML
+            \item \textit{components}, typically written in Python
+        \end{itemize}
 %In simplest case there are no components:
 %
 %\begin{tikzpicture}
@@ -829,7 +858,7 @@ Then the interface can be invoked from \Simics{} command line via Python:
     @conf.platf.device.ifaces.$iface_1$.$method_1$(1, None)
 \end{code}
 
-Copyright \copyright\ 2021 Andrey Makarov
+Copyright \copyright\ 2021—2022 Andrey Makarov \\
 \href{https://github.com/a-mr/simics-cheatsheet}{https://github.com/a-mr/simics-cheatsheet}
 Version 6.0.100
 

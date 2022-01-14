@@ -96,7 +96,7 @@
 \DeclareTextFontCommand{\textit}{\iseries}
 
 % font for headings
-\setsansfont{Nunito}
+\setsansfont{Open Sans}
 
 % some bolder font
 \usepackage{unicode-math}
@@ -160,7 +160,11 @@ line/.style={-latex},
 % target prompt:
 \newcommand{\tprompt}{\textcolor{brown}{\textbf{target\$}\ }}
 \newcommand{\sprompt}{\textcolor{blue}{\textbf{>}\ }}
+% Syntax:
 \newcommand{\kw}[1]{\textcolor{magenta}{\textbf{#1}}}
+\newcommand{\ty}[1]{\textcolor{Orange}{\textbf{#1}}}
+% Misc highlighting:
+\newcommand{\hl}[1]{\textcolor{blue}{\textbf{#1}}}
 % shell/simics script/python comment
 \newcommand{\cmtcommon}[1]{\textcolor{Sepia}{\textbf{#1}}}
 \newcommand{\cmt}[1]{\cmtcommon{\#\ #1}}
@@ -277,7 +281,7 @@ line/.style={-latex},
         \\
 
         & \begin{code9}
-            \prompt ./simics -e ‘\$config\_variable1=value; \$config\_var2=value’ start.simics
+            \prompt ./simics -e ‘\$config_variable1=value; \$config_var2=value’ start.simics
 
             \cmt{but NOT ./simics start.simics -e \$varibables ...}
         \end{code9}
@@ -286,8 +290,8 @@ line/.style={-latex},
         $\longrightarrow$ &
         \begin{code9}
             \prompt ./simics
-            \sprompt \$config\_variable=value
-            \sprompt \$config\_var2=value
+            \sprompt \$config_variable=value
+            \sprompt \$config_var2=value
             \sprompt run-command-file start.simics
         \end{code9}
     \end{tabular}
@@ -302,15 +306,14 @@ line/.style={-latex},
 To find devices by name/class or interface name:
     \begin{code}
         \sprompt list-objects -all \p{name} \ind \# searches also class
-        %\sprompt list-objects -all class = \p{my\_class}
-        \sprompt list-objects -all iface = \p{my\_interface}
+        \sprompt list-objects -all iface = \p{my_interface}
     \end{code}
 
 To find all objects with the same class as given device:
         \begin{code}
             \sprompt \p{platf.myDevice}->classname
-            \p{my\_class}
-            \sprompt list-objects -all class = \p{my\_class}
+            \p{my_class}
+            \sprompt list-objects -all class = \p{my_class}
         \end{code}
 
 \subsection{Registers}
@@ -404,9 +407,9 @@ Save simics variables to file
 
 \subsection{Check points}
 \begin{tabular}{ll}
-            \cod{write-configuration \p{"checkpoint\_name"}} & — save
+            \cod{write-configuration \p{"checkpoint_name"}} & — save
             checkpoint \\
-            \cod{read-configuration \p{"checkpoint\_name"}} & — restore it back
+            \cod{read-configuration \p{"checkpoint_name"}} & — restore it back
 \end{tabular}
 
 \subsection{Model information}
@@ -457,7 +460,7 @@ Save simics variables to file
 \begin{code}
     \prompt bin/project-setup -{}-device \p{example-dev}
     \prompt ls modules/\p{example-dev}
-    test/  \p{example-dev}.dml  Makefile  module\_load.py
+    test/  \p{example-dev}.dml  Makefile  module_load.py
 \end{code}
 
 The header of \p{example-dev}.dml is then:
@@ -467,8 +470,8 @@ The header of \p{example-dev}.dml is then:
     %\begin{tabular}{p{3cm}p{\linewidth-3.8cm}}
     \begin{tabular}{ll}
         dml 1.4;                  & \cmtd{Obligatory .dml header} \\
-        \kw{device} example\_dev; & \cmtd{Class name.} \\
-                                  & \cmtd{Note: - changed to underscore \_}
+        \kw{device} example_dev;  & \cmtd{Class name.} \\
+                                  & \cmtd{Note: - changed to underscore _}
     \end{tabular}
 \end{code}
 
@@ -480,8 +483,8 @@ The header of \p{example-dev}.dml is then:
     Makefile  \p{sample}-interface.dml  \p{sample}-interface.h
 \end{code}
 
-Python support is enabled by \cod{IFACE\_FILES} in the Makefile.
-The generated C \kw{struct} name is \cod{\p{sample}\_interface\_t}.
+Python support is enabled by \cod{IFACE_FILES} in the Makefile.
+The generated C \kw{struct} name is \cod{\p{sample}_interface_t}.
 
 \subsection{Arithmetics}
 
@@ -489,14 +492,14 @@ The generated C \kw{struct} name is \cod{\p{sample}\_interface\_t}.
 
 Assignments are equivalent to casts and hence can truncate:
         \begin{code}
-            \local uint8 x = 0xffff  \cmtd{results in x == 0xff}
+            \local \ty{uint8} x = 0xffff  \cmtd{results in x == 0xff}
         \end{code}
 
         All aritmetic operators like $+$, $*$ convert its operands to int64:
         \begin{code}
-            \local uint16 $i$ = 0x7fff; \local int8 $j$ = 2;  \cmtd{let us sum them:}
+            \local \ty{uint16} $i$ = 0x7fff; \local \ty{int8} $j$ = 2;  \cmtd{let us sum them:}
             \vspace{0.1cm}
-            \local int16 \tikzmark{b} $x$ = $\overbrace{\ind i + j; \ind }^{\text{calculates as int64 $\rightarrow$ 0x8001} \tikzmark{a}}$ \DrawBottomReverse{black}{truncates to int16} \cmtd{finally results in $x == 1$}
+            \local \ty{int16} \tikzmark{b} $x$ = $\overbrace{\ind i + j; \ind }^{\text{calculates as int64 $\rightarrow$ 0x8001} \tikzmark{a}}$ \DrawBottomReverse{black}{truncates to int16} \cmtd{finally results in $x == 1$}
             \vspace{0.3cm}
         \end{code}
 
@@ -506,13 +509,13 @@ Comparisons on only uint64 act as proper uint64, however
 in comparisons int64 vs. uint64 the operands are converted to int64!
 
         \begin{code}
-            \local uint64 u;
+            \local \ty{uint64} u;
             u = -1; \ind \cmtd{equivalent to u = cast(-1, uint64) $\mathbf{= 2^{64}-1}$, all ones}
             \begin{tabular}{@{}ll}
                 u == -1 & \cmtd{FALSE! Equivalent to int64(u) == int64(-1),} \\
                         & \cmtd{where upper bit is cropped: int64(u) == ($\mathbf{2^{63}-1}$).}
             \end{tabular}
-            u == cast(-1, uint64) \cmtd{true. As comparison is between two uint64}
+            u == cast(-1, \ty{uint64}) \cmtd{true. As comparison is b/w two uint64}
             u > -1 \ind \cmtd{true, but unlike C! it's int64(u) > int64(-1): $\mathbf{2^{63}-1>1}$}
         \end{code}
 
@@ -532,9 +535,9 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \hline
         DML construct & checkpointed & fields & address-mapped & arbitrary data\\
         \hline
-        session & - & - & - & + \\
-        saved & + & - & - & - \\
-        attributes & + & - & - & + \\
+        \kw{session} & - & - & - & + \\
+        \kw{saved} & + & - & - & - \\
+        attribute & + & - & - & + \\
         unmapped register & + & + & - & - \\
         {[}normal{]} register & + & + & + & - \\
         \hline
@@ -544,15 +547,15 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 
     Definition in \cod{.dml}:
     \begin{code}
-        extern typedef struct \{
-           \ind method \p{name}(\p{$type_1$ $value_1$}) -> \p{out_type};
-        \} \p{sample}_interface_t;
+        extern typedef \kw{struct} \{
+            \ind method \p{name}(\p{\ty{$type_1$} $value_1$}) -> \p{\ty{out_type}};
+        \} \ty{\p{sample}_interface_t};
     \end{code}
 
     Obligatory definition in C \cod{.h} file:
     \begin{code}
-        SIM_INTERFACE(\p{sample}) \{  \cmtd{essentially 'typedef struct' also}
-            \ind \p{out_type} (*\p{name})(conf_object_t *obj, \p{$type_1$ $value_1$});
+        SIM_INTERFACE(\p{sample}) \{  \cmtd{essentially 'typedef \kw{struct}' also}
+            \ind \ty{\p{out_type}} (*\p{name})(\ty{conf_object_t *} \hl{obj}, \ty{\p{$type_1$}} \p{$value_1$});
         \}
     \end{code}
 
@@ -563,6 +566,8 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \item \cod{implement}s are for \textbf{in}bound calls
     \end{itemize}
 
+    \includegraphics[width=\linewidth]{diagrams/connect_implement.pdf}
+
     \global\rownum=1\relax
     %\begin{tabulary}{\linewidth}{|lcc|}
     \begin{tabular}{|lp{2.5cm}c|}
@@ -572,16 +577,16 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \hline
         \cod{connect} & - &
             \begin{codem}[3cm]
-                connect $C_A$ \{
-                  \ind interface $Out_1$ \{
+                connect \p{C_a} \{
+                  \ind interface $I_1$ \{
                       \vshort{\ind\ind ...}
                   \ind \}
-                  \ind interface $Out_2$ \{
+                  \ind interface $I_2$ \{
                       \vshort{\ind\ind ...}
                   \ind \}
                 \}
                 connect $C_B$ \{
-                  \ind interface $Out_2$ \{
+                  \ind interface $I_2$ \{
                     \vshort{\ind\ind ...}
                     %  \vspace{-0.6em}
                     %\ind\ind ...
@@ -589,26 +594,27 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \\[1.4cm]  % selected by trial
         \cod{implement} &
             \begin{codem}[2.5cm]
-                implement $In_1$ \{
+                implement $I_1$ \{
                     \ind ...
                 \}
-                implement $In_2$ \{
+                implement $I_2$ \{
                     \ind ...
                 \}
             \end{codem}
+            (as in picture above)
             &
             \begin{codem}[3cm] 
                 port $P_A$ \{
-                \ind implement $In_1$ \{
+                \ind implement $I_1$ \{
                     \vshort{\ind\ind ...}
                 \ind\}
-                \ind implement $In_2$ \{
+                \ind implement $I_2$ \{
                     \ind\ind \emph{... variant 1 ...}
                       \vspace{-0.3em}
                 \ind\}
                 \}
                 port $P_B$ \{
-                \ind implement $In_2$ \{
+                \ind implement $I_2$ \{
                     \ind\ind \emph{... variant 2 ...}
             \end{codem}
             \\
@@ -628,7 +634,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 \subsection{Debugging with Gdb}
 To debug simics and its modules itself:
         \begin{code}
-            \# Terminal \#1
+            \cmt{Terminal \#1:}
             \prompt make clobber-\p{my-module}
             \prompt make D=1 \p{my-module}
             \prompt ./simics
@@ -637,7 +643,7 @@ To debug simics and its modules itself:
         \end{code}
 
         \begin{code}[colback=blue!15]
-            \# Terminal \#2:
+            \cmt{Terminal \#2:}
             \prompt bin/gdb
             >\,>\,> attach \p{12345}
             >\,>\,> br \p{file.dml:100}  \ind \# break on line 100
@@ -645,7 +651,7 @@ To debug simics and its modules itself:
         \end{code}
 
         \begin{code}
-            \# Back to terminal \#1:
+            \cmt{Back to terminal \#1:}
             \sprompt run-command-file targets/\p{platf/platf.simics}
         \end{code}
 
@@ -661,7 +667,6 @@ To debug simics and its modules itself:
     \cod{attr_value_t} is a C union that can hold one of a
     few predefined types.
 
-    %There are only these 7 types of \cod{attr\_value\_t}:
     Attributes values are allocated/packed by:\\
     \cod{attr_value_t x = \textbf{SIM_make_attr_\p{T}}(\p{cType} val)},
     and extracted by:\\
@@ -673,21 +678,21 @@ To debug simics and its modules itself:
             \hline
             \p{T}         & type spec & \p{cType} — DML/C type \\
             \hline
-            uint64, int64 & i & uint64, int64 \\
-            boolean       & b & bool \\
-            floating      & f & double \\
-            string        & s & char* \\
-            object        & o & conf\_object\_t \\
-            list          & [$x_1..x_n$] & fixed-width tuple with types $x_1..x_n$ \\
-            list          & [$x*$] & arbitrary-width array of $x$ \\
+            uint64, int64 & i & \ty{uint64}, \ty{int64} \\
+            boolean       & b & \ty{bool} \\
+            floating      & f & \ty{double} \\
+            string        & s & \ty{char*} \\
+            object        & o & \ty{conf_object_t} \\
+            list          & [\ty{$x_1$}...\ty{$x_n$}] & fixed-width tuple with $n$ elements of types \ty{$x_1$}, ..., \ty{$x_n$} \\
+            list          & [\ty{$x$}*] & arbitrary-width array of \ty{$x$} \\
             list          & [$x+$] & non-empty arbitrary-width array
-                                     of $x$ \\
-            list          & $[x\{m:n\}]$ & array with $m ≤ size ≤ n$ \\
-            list          & $[x\{n\}]$ & fixed-width tuple with $n$
-                                         elements of $x$ \\
-            dict          & D & array of attr\_dict\_pair\_t \\
-            data          & d & uint8* \\
-            nil           & n & void or $x$* \\
+                                     of \ty{$x$} \\
+            list          & [\ty{$x$}$\{m:n\}$] & array of \ty{$x$} with $m ≤ size ≤ n$ \\
+            list          & [\ty{$x$}$\{n\}$] & fixed-width tuple with $n$
+                                         elements of \ty{$x$} \\
+            dict          & D & array of \ty{attr_dict_pair_t} \\
+            data          & d & \ty{uint8*} \\
+            nil           & n & \ty{void} or \ty{$x$*} \\
             invalid       &   &  (none, used for indicating errors) \\
             \hline
         \end{tabulary}
@@ -695,8 +700,8 @@ To debug simics and its modules itself:
     List items are accessed by \cod{SIM_attr_list_item}.
     Type specs can be OR'ed as \cod{$x_1$\kw{|}$x_2$}.
     Type spec is used in \cod{\kw{param} type = "..."}. For first 4
-    types there are predefined DML templates \cod{uint64\_attr},
-    \cod{int64\_attr}, \cod{bool\_attr}, \cod{double\_attr}.
+    types there are predefined DML templates \cod{uint64_attr},
+    \cod{int64_attr}, \cod{bool_attr}, \cod{double_attr}.
 
     \renewcommand\_{\textunderscore\linebreak[1]}
 
@@ -705,8 +710,8 @@ To debug simics and its modules itself:
         \global\rownum=0\relax
         \begin{tabulary}{\linewidth}{|p{3.5cm}p{2cm}p{2.2cm}|}
         \hline
-        Execution stage & SIM\_object\_is\_configured(obj) &
-            SIM\_is\_restoring\_state(\,) \\
+        Execution stage & SIM_object_is_configured(obj) &
+            SIM_is_restoring_state(\,) \\
         \hline
         Create object at 1st platform init & - & - \\
         Load checkpoint & - & + \\
@@ -724,14 +729,14 @@ To debug simics and its modules itself:
         \begin{code}
             \kw{import} "simics/util/hashtab.dml";
             \vshort{...}
-            \local ht\_str\_table\_t tab;  \cmtd{str — string (aka const char*) keys.}
-            ht\_init\_str\_table(\kw{\&}tab, \cmtcommon{/*keys\_owned*/} true);
-            \local double \kw{*}value = new double;  \kw{*}value = 10.0;
-            ht_insert_str(\kw{\&}table, "key", cast(value, void\kw{*}));
-            \local double \kw{*}get_back = cast(ht_lookup_str(\kw{\&}tab, "key"), double\kw{*});
-            assert \kw{*}get_back == 10.0
+            \local \ty{ht_str_table_t} tab;  \cmtd{str — string (aka const char*) keys.}
+            ht_init_str_table(\kw{\&}tab, \cmtcommon{/*keys_owned*/} true);
+            \local \ty{double *}value = new \ty{double};  \kw{*}value = 10.0;
+            ht_insert_str(\kw{\&}table, "key", cast(value, \ty{void *}));
+            \local \ty{double *}get_back = cast(ht_lookup_str(\kw{\&}tab, "key"), \ty{double*});
+            assert \kw{*}get_back == 10.0;
         \end{code}
-        There are also tables for \cod{int} keys or general (\cod{common}) keys.
+        There are also tables for \cod{\ty{int}} keys or general (\cod{common}) keys.
 
 \subsection{The secret of DML}
         Many "internal" features like registers and even connects are actually
@@ -779,7 +784,7 @@ A \Simics{} module includes classes, there are 2 types of them:
 %
 %\begin{tikzpicture}
 %
-%    \node[block, fill=lightgray] (a) {\p{block\_a} (DML device)};
+%    \node[block, fill=lightgray] (a) {\p{block_a} (DML device)};
 %    \node[above of=a] (am) {block-a module};
 %    \node[draw, fill=gray, fill opacity=0.5, inner xsep=3mm,
 %          inner ysep=1mm, fit=(a)(am)] (m) {};
@@ -790,13 +795,13 @@ A \Simics{} module includes classes, there are 2 types of them:
 A typical layout with 1-to-1 device-component correspondence:
 
 \begin{tikzpicture}
-    \node[block, fill=lightgray] (a) {\p{block\_a} (DML device)};
+    \node[block, fill=lightgray] (a) {\p{block_a} (DML device)};
     \node[above of=a] (caption) {\p{block-a} module};
     \node[draw, fill=gray, fill opacity=0.5, inner xsep=3mm,
           inner ysep=1mm, fit=(a)(caption)] (am) {};
     
     \node[block, right=1cm of a, fill=lightgray, text width=4cm] (ac) 
-        {\p{block\_a}\_comp (Python class)};
+        {\p{block_a}_comp (Python class)};
     \node[above of=ac] (acm) {\p{block-a}-comp module};
     \node[draw, fill=gray, fill opacity=0.5, inner xsep=1mm,
           inner ysep=1mm, fit=(ac)(acm)] (cm) {};
@@ -808,13 +813,13 @@ In simplest case there are no components for a device, so its
 platform \p{platf} will have to instantiate and configure the device:
 
 \begin{tikzpicture}
-    \node[block, fill=lightgray] (b) {\p{block\_b} (DML device)};
+    \node[block, fill=lightgray] (b) {\p{block_b} (DML device)};
     \node[above of=b] (bm) {\p{block-b} module};
     \node[draw, fill=gray, fill opacity=0.5, inner xsep=3mm,
           inner ysep=1mm, fit=(b)(bm)] (am) {};
     
     \node[block, right=1cm of b, fill=lightgray, text width=4cm] (pc) 
-        {\p{platf}\_comp (Python class)};
+        {\p{platf}_comp (Python class)};
     \node[above of=pc] (pcm) {\p{platf}-comp module};
     \node[draw, fill=gray, fill opacity=0.5, inner xsep=1mm,
           inner ysep=1mm, fit=(pc)(pcm)] (cm) {};
@@ -825,10 +830,10 @@ platform \p{platf} will have to instantiate and configure the device:
 There can be a module with 1 component and many classes:
 
 \begin{tikzpicture}
-    \node[block, fill=lightgray] (x) {\p{big\_monster}\_comp (Python class)};
+    \node[block, fill=lightgray] (x) {\p{big_monster}_comp (Python class)};
     \node[block, below=of x, fill=lightgray,xshift=-1cm] (c)
-        {\p{block\_c} (DML device)};
-    \node[block, right=of c, fill=lightgray] (d) {\p{block\_d} (DML device)};
+        {\p{block_c} (DML device)};
+    \node[block, right=of c, fill=lightgray] (d) {\p{block_d} (DML device)};
 
     \node[xshift=1.5cm, above=0.1cm of x] (caption) {\p{big-monster} module};
     \node[draw, fill=gray, fill opacity=0.5,inner xsep=3mm,inner ysep=1mm, 

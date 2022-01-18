@@ -195,6 +195,8 @@ line/.style={-latex},
 
 
 \begin{multicols*}{3}
+    {\Large\centering \Simics{} cheatsheet\par}
+    %\section*{Simics cheatsheet}
     %\begin{center} \textbf{\Large \Simics{} Cheat Sheet} \end{center}
 
 \section{\Simics{} Usage}
@@ -305,14 +307,16 @@ line/.style={-latex},
 \subsection{Printing device structure}
 To find devices by name/class or interface name:
     \begin{code}
-        \sprompt list-objects -all \p{name} \ind \# searches also class
-        \sprompt list-objects -all iface = \p{my_interface}
+        \sprompt list-objects -all \p{name} \ind \cmt{searches also the class}
+        \sprompt list-objects -all substr = \p{mem} \cmt{object names containing \p{mem}}
+        \sprompt list-objects -all iface = \p{my_interface} \cmt{by interface name}
     \end{code}
 
 To find all objects with the same class as given device:
         \begin{code}
             \sprompt \p{platf.myDevice}->classname
             \p{my_class}
+            \sprompt list-objects -all \p{my_class}
             \sprompt list-objects -all class = \p{my_class}
         \end{code}
 
@@ -342,6 +346,37 @@ It's done through attributes:
     \p{platf.myDev}->\p{myBank_myGrp_myReg} = 0x1
     \cmt{To get the value:}
     \p{platf.myDev}->\p{myBank_myGrp_myReg}
+\end{code}
+
+\subsection{Device information}
+
+\subsubsection{Model information}
+
+\begin{code}
+    \cmt{Documentation + information about class \& module \& package:}
+    \sprompt help \p{platf.myDev}
+    Class \textbf{myClass}
+
+    \vspace{0.3em}
+    Provided By
+    \ind   \p{myModule} (from \textbf{myPackage})
+    \vspace{0.3em}
+
+    \cmt{To list all classes provided by a module:}
+    \sprompt list-classes -m \p{myModule}
+    \cmt{Configuration information}
+    \sprompt \p{platf.myDev}.info
+\end{code}
+
+\subsubsection{Runtime information}
+
+\begin{code}
+    \cmt{Runtime information:}
+    \sprompt \p{platf.myDev}.status
+    \cmt{pretty-print device attributes with values:}
+    \sprompt list-attributes \p{platf.myDev}
+    \cmt{to search all attributes/registers containing \p{mem}:}
+    list-attributes \p{platf.myDevice} substr = \p{mem}
 \end{code}
 
 
@@ -412,19 +447,6 @@ Save simics variables to file
             \cod{read-configuration \p{"checkpoint_name"}} & — restore it back
 \end{tabular}
 
-\subsection{Model information}
-
-\begin{code}
-    \cmt{Documentation + information about class\&module:}
-    \sprompt help \p{platf.myDev}
-    \cmt{pretty-print device attributes with values:}
-    \sprompt list-attributes \p{platf.myDev}
-    \cmt{Configuration information}
-    \sprompt \p{platf.myDev}.info
-    \cmt{Runtime information:}
-    \sprompt \p{platf.myDev}.status
-\end{code}
-
 \subsection{Environment}
 \begin{code}
     \sprompt version  \cmt{list of installed packages}
@@ -432,7 +454,22 @@ Save simics variables to file
     \sprompt pwd \cmt{current directory where simics is running}
 \end{code}
 
-\subsection{Making images}
+%\subsection{Making images}
+
+\subsection{Connects}
+
+\begin{code}
+    \cmt{to set connect attribute:}
+    \sprompt \p{platf.myDevice}->\p{myConnect} = "\p{platf.anotherDevice}"
+    \cmt{to zero connect attribute:}
+    \sprompt \p{platf.myDevice}->\p{myConnect} = FALSE
+\end{code}
+
+\subsection{Miscellaneous}
+\begin{code}
+    \cmt{To dump network packages (for analysis with Wireshark)}:
+    \sprompt pcap-dump link=\p{ethernet_switch0} filename=\p{myFile}
+\end{code}
 
 \newpage
 
@@ -446,7 +483,7 @@ Save simics variables to file
         is included into \Simics{} Base) used for writing (fast) devices
         \\
         \kw{device}          & any \Simics{} class for modelling real
-        devices. Different \Simics{} devices communicate via interfaces
+        devices. Different \Simics{} devices communicate via \textit{interfaces}.
         \\
         \textit{Model Builder User’s Guide} & overview of Simics/DML
         programming \\
@@ -526,6 +563,38 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \subsubsection{Types}
 
     \subsubsection{Methods}
+    They are called \textit{methods}, not functions, because
+    they accept \textbf{implicit} 1st argument — object (current
+    device), like C++ methods.
+    \begin{code}
+        method \p{name}($inputType_1$ $arg_1$) -> ($outputType_1$, $outputType_2$) \{
+            \vshort{\ind ...}
+            \ind local $outputType_1$ $var_1$ = ...; local $outputType_2$ $var_2$ = ...;
+            \ind return $(var_1, var_2)$;
+        \}
+        \cmt{calling this method:}
+        local $inputType_1$ val = ...;
+        local $outputType_1$ x; local $outputType_2$ y;
+        (x, y) = \p{name}(val);
+    \end{code}
+
+    \subsubsection{Bitfields}
+    \begin{code}
+        bitfields 32 \{
+            \ind uint3 \p{upper_bits} @ [31:29];
+            \vshort{\ind ...}
+        \}
+    \end{code}
+
+    \subsubsection{Object declarations}
+    \begin{code}
+        \p{objectType} \p{objectName} \{
+            \ind method \{
+            \ind     \vshort{\ind \ind ...}
+            \ind \}
+        \}
+        register \p{regName} @ \p{offset} is ($template_1$, ...);
+    \end{code}
 
 \subsubsection{Module variables and other data objects}
 
@@ -723,6 +792,26 @@ To debug simics and its modules itself:
 \subsection{Standard register templates}
 
 \subsection{Compile-time statements \& conditional compilation}
+
+\begin{code}
+    \kw{param} \p{p1} = 10; \cmt{Non-overridable parameter}
+    \kw{param} \p{p2} default "value"; \cmt{Overridable parameter}
+    template \p{myTemplate} \{
+        \ind param \p{p3}; \cmt{undefined value — must be given on \p{myTemplate} instantiation}
+        \vshort{\ind ...}
+    \}
+    \cmtd{Compile-time \kw{if}}
+    \kw{\#if} (p1 == 20) \{
+        \vshort{\ind ...}
+    \} \kw{\#else \#if} \{
+        \vshort{\ind ...}
+    \} \kw{\#else} \{
+        \vshort{\ind ...}
+    \}
+    \cmtd{Compile-time ternary operator \kw{\#?} \kw{\#:}}
+    param mode = p1 == 20 \kw{\#?} "equal 20" \kw{\#:} "not equal 20";
+\end{code}
+
 
 \subsection{Hash tables}
 

@@ -135,23 +135,24 @@ line/.style={-latex},
 }
 
 % box with modifiable size
-\newenvironment{codem}[1][\linewidth]{%
+\newenvironment{codem}[2][\linewidth]{%
 \begin{minipage}{#1}%
-\begin{prebox}\obeylines}{%
+\begin{prebox}[colback=#2]\obeylines}{%
 \end{prebox}%
 \end{minipage}}
 
 % box with size 90%
-\newenvironment{code9}{\begin{codem}[0.9\linewidth]}{\end{codem}}
+\newenvironment{code9}{%
+\begin{codem}[0.9\linewidth]{green!15}}{\end{codem}}
 
 % inline color box for code
-\newcommand{\cod}[1]{\tcbox[
+\newcommand{\cod}[2][green!15]{\tcbox[
     size=fbox,
     on line,
-    colback=green!15,
+    colback=#1,
     colframe=black,
     arc=0.3em  % rounded corners
-]{#1}}
+]{#2}}
 
 % Syntax highlighting for code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\ind}{\hphantom{~~~}}
@@ -203,8 +204,8 @@ line/.style={-latex},
 
 \subsection{Glossary \& Documentation}
     \settowidth{\MyLen}{\textit{[simics]-script.}}
+    \rowcolors{1}{gray!15}{white}
     \begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
-    %\begin{tabular}{@{}p{\the\MyLen}@{}p{\linewidth-\the\MyLen}@{}}
         \textit{\Simics{} Base} & \cod{simics} executable + the set of
         supporting shared libraries (DLLs) + tools
         \\
@@ -254,7 +255,7 @@ line/.style={-latex},
     Shell command line arguments $\longrightarrow$ \Simics{} command line 
         correspondence:
 
-    \begin{tabular}{lp{0.9\linewidth}}
+    \begin{tabular}{p{0.05\linewidth}p{0.85\linewidth}}
         &
         \begin{code9}
             \prompt ./simics start.simics
@@ -505,6 +506,7 @@ The header of \p{example-dev}.dml is then:
 \begin{code}
     %\begin{tabulary}{\linewidth}{p{4cm}L}
     %\begin{tabular}{p{3cm}p{\linewidth-3.8cm}}
+    \rowcolors{1}{}{}
     \begin{tabular}{ll}
         dml 1.4;                  & \cmtd{Obligatory .dml header} \\
         \kw{device} example_dev;  & \cmtd{Class name.} \\
@@ -548,6 +550,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \begin{code}
             \local \ty{uint64} u;
             u = -1; \ind \cmtd{equivalent to u = cast(-1, uint64) $\mathbf{= 2^{64}-1}$, all ones}
+            \rowcolors{1}{}{}
             \begin{tabular}{@{}ll}
                 u == -1 & \cmtd{FALSE! Equivalent to int64(u) == int64(-1),} \\
                         & \cmtd{where upper bit is cropped: int64(u) == ($\mathbf{2^{63}-1}$).}
@@ -559,6 +562,41 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 \subsection{Syntax}
 
     \subsubsection{Statements}
+    \begin{code}
+        \cmtd{Printing through \kw{log} statements:}
+        \kw{log} \p{log-type}, \p{level}, \p{groups}: \p{"format-string"}, $arg_1$, ..., $arg_N$;
+    \end{code}
+    \global\rownum=0\relax
+    \begin{tabulary}{\linewidth}{|LL|}
+        \hline
+        \p{log-level} & usage rule \\
+        \hline
+        1 & messages to be read by all, esp. errors \\
+        2 & crucial events for boards/devices, e.g. their resets \\
+        3 & any other messages to be read by device driver writers or validators \\
+        4 & internal device debug messages \\
+        \hline
+    \end{tabulary}
+    \begin{code}
+        \cmtd{Dynamic allocation (like malloc in C):}
+        \local \ty{$type$ *} x = \kw{new} \ty{$type$};  \cmtd{e.g. for int array:}
+        \local \ty{int *} x = \kw{new} \ty{int[100]};
+        \kw{delete} x;
+        \cmtd{Raising/catching exceptions:}
+        \kw{try} \{
+            \ind \kw{throw;}  \cmtd{YES, no data can be carried by exception}
+        \} catch \{
+            \vshort{\ind ...}
+        \}
+    \end{code}
+
+    \subsubsection{Expressions}
+    \begin{code}
+        sizeof $value$  \cmtd{: int — get byte size of the value}
+        sizeoftype $type$  \cmtd{: int — get byte size of the type}
+        x[10:8]  \cmtd{Get bits 10—8 of integer $x$:}
+        x[8]  \cmtd{Get bit 8 of integer $x$:}
+    \end{code}
 
     \subsubsection{Types}
 
@@ -598,7 +636,6 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 
 \subsubsection{Module variables and other data objects}
 
-\rowcolors{2}{gray!15}{white}
     \global\rownum=1\relax
     \begin{tabulary}{\linewidth}{|LLLLL|}
         \hline
@@ -628,11 +665,11 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \}
     \end{code}
 
-    \subsubsection{Explaining \cod{connect}s and \cod{implement}s}
+    \subsubsection{Explaining \cod{connect}s and \cod[magenta!35]{implement}s}
 
     \begin{itemize}
         \item \cod{connect}s are for \textbf{out}bound calls
-        \item \cod{implement}s are for \textbf{in}bound calls
+        \item \cod[magenta!35]{implement}s are for \textbf{in}bound calls
     \end{itemize}
 
     \includegraphics[width=\linewidth]{diagrams/connect_implement.pdf}
@@ -645,7 +682,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
          & unnamed (whole-device) & named \\
         \hline
         \cod{connect} & - &
-            \begin{codem}[3cm]
+            \begin{codem}[3cm]{green!15}
                 connect \p{C_a} \{
                   \ind interface $I_1$ \{
                       \vshort{\ind\ind ...}
@@ -661,8 +698,8 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
                     %\ind\ind ...
             \end{codem}
             \\[1.4cm]  % selected by trial
-        \cod{implement} &
-            \begin{codem}[2.5cm]
+        \cod[magenta!35]{implement} &
+            \begin{codem}[2.5cm]{magenta!35}
                 implement $I_1$ \{
                     \ind ...
                 \}
@@ -672,7 +709,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \end{codem}
             (as in picture above)
             &
-            \begin{codem}[3cm] 
+            \begin{codem}[3cm]{magenta!35}
                 port $P_A$ \{
                 \ind implement $I_1$ \{
                     \vshort{\ind\ind ...}
@@ -810,6 +847,8 @@ To debug simics and its modules itself:
     \}
     \cmtd{Compile-time ternary operator \kw{\#?} \kw{\#:}}
     param mode = p1 == 20 \kw{\#?} "equal 20" \kw{\#:} "not equal 20";
+    \cmtd{Represent \textit{value} of parameter as string}
+    param p1_str = stringify(p1);  \cmtd{results in "10"}
 \end{code}
 
 

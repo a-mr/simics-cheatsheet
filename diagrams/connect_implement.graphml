@@ -30,7 +30,7 @@
       <data key="d6">
         <y:ShapeNode>
           <y:Geometry height="115.59999999999997" width="174.54840361900358" x="167.03776492782197" y="144.40000000000003"/>
-          <y:Fill color="#00FF00" transparent="false"/>
+          <y:Fill color="#99FF99" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="14" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="20.296875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="59.80859375" x="13.900228962707047" xml:space="preserve" y="47.65156249999998">connect<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="-0.5" labelRatioY="0.0" nodeRatioX="-0.4203646170660613" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="18" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="24.953125" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tr" textColor="#0000FF" verticalTextPosition="bottom" visible="true" width="35.4208984375" x="135.12750518150358" xml:space="preserve" y="4.0">obj</y:NodeLabel>

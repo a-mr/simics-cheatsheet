@@ -102,6 +102,12 @@
 \usepackage{unicode-math}
 \setmathfont[Scale=1.0]{TeX Gyre Schola Math}
 
+\usepackage{circledsteps}  % for \Circled
+\pgfkeys{/csteps/inner color=white}
+\pgfkeys{/csteps/outer color=black}
+\pgfkeys{/csteps/fill color=black}
+\newcommand{\circled}[1]{\Circled{\textbf{#1}}}
+
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,positioning,calc,fit}
 \tikzset{
@@ -123,7 +129,7 @@ line/.style={-latex},
     left=0.5mm, right=0.5mm, top=0mm, bottom=0mm,
     before skip=3pt, after skip=3pt,
     frame hidden, boxrule=0.05em,
-    colback=green!15, #1}
+    colback=green!10, #1}
 
 % colored box around code
 \newenvironment{code}[1][]{%
@@ -143,10 +149,10 @@ line/.style={-latex},
 
 % box with size 90%
 \newenvironment{code9}{%
-\begin{codem}[0.9\linewidth]{green!15}}{\end{codem}}
+\begin{codem}[0.9\linewidth]{green!10}}{\end{codem}}
 
 % inline color box for code
-\newcommand{\cod}[2][green!15]{\tcbox[
+\newcommand{\cod}[2][green!10]{\tcbox[
     size=fbox,
     on line,
     colback=#1,
@@ -163,7 +169,8 @@ line/.style={-latex},
 \newcommand{\sprompt}{\textcolor{blue}{\textbf{>}\ }}
 % Syntax:
 \newcommand{\kw}[1]{\textcolor{magenta}{\textbf{#1}}}
-\newcommand{\ty}[1]{\textcolor{Orange}{\textbf{#1}}}
+\definecolor{myOrange}{rgb}{0.7,0.25,0}
+\newcommand{\ty}[1]{\textcolor{myOrange}{\textbf{#1}}}
 % Misc highlighting:
 \newcommand{\hl}[1]{\textcolor{blue}{\textbf{#1}}}
 % shell/simics script/python comment
@@ -480,13 +487,14 @@ Save simics variables to file
     \settowidth{\MyLen}{\texttt{dml-1.4-reference-man}}
     %\begin{tabulary}{\linewidth}{p{4cm}L}
     \begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
-        \textit{DML}         & Device Modelling Language (its compiler 
-        is included into \Simics{} Base) used for writing (fast) devices
+        \textit{DML}         & Device Modelling Language is a
+        wrapper over C for writing (fast) devices.
+        Its compiler is included into \Simics{} Base.
         \\
         \kw{device}          & any \Simics{} class for modelling real
         devices. Different \Simics{} devices communicate via \textit{interfaces}.
         \\
-        \textit{Model Builder User’s Guide} & overview of Simics/DML
+        \textit{Model Builder User’s Guide} & overview of \Simics{}/DML
         programming \\
         \textit{DML 1.4 Reference Manual} & language specification \\
         \textit{API Reference Manual} & API function list for DML \& C,
@@ -509,7 +517,7 @@ The header of \p{example-dev}.dml is then:
     \rowcolors{1}{}{}
     \begin{tabular}{ll}
         dml 1.4;                  & \cmtd{Obligatory .dml header} \\
-        \kw{device} example_dev;  & \cmtd{Class name.} \\
+        \kw{device} \p{example_dev};  & \cmtd{Class name.} \\
                                   & \cmtd{Note: - changed to underscore _}
     \end{tabular}
 \end{code}
@@ -565,6 +573,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \begin{code}
         \cmtd{Printing through \kw{log} statements:}
         \kw{log} \p{log-type}, \p{level}, \p{groups}: \p{"format-string"}, $arg_1$, ..., $arg_N$;
+        \cmtd{(The "format-string" is the same as in C, see `man 3 printf')}
     \end{code}
     \global\rownum=0\relax
     \begin{tabulary}{\linewidth}{|LL|}
@@ -578,10 +587,11 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \hline
     \end{tabulary}
     \begin{code}
-        \cmtd{Dynamic allocation (like malloc in C):}
-        \local \ty{$type$ *} x = \kw{new} \ty{$type$};  \cmtd{e.g. for int array:}
+        \cmtd{Dynamic allocation (like malloc() in C):}
+        \local \ty{$type$ *} x = \kw{new} \ty{$type$};
+        \cmtd{e.g. for int array:}
         \local \ty{int *} x = \kw{new} \ty{int[100]};
-        \kw{delete} x;
+        \kw{delete} x;  \cmtd{Deallocation like free() in C}
         \cmtd{Raising/catching exceptions:}
         \kw{try} \{
             \ind \kw{throw;}  \cmtd{YES, no data can be carried by exception}
@@ -605,14 +615,14 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     they accept \textbf{implicit} 1st argument — object (current
     device), like C++ methods.
     \begin{code}
-        method \p{name}($inputType_1$ $arg_1$) -> ($outputType_1$, $outputType_2$) \{
+        \kw{method} \p{name}($inputType_1$ $arg_1$) -> ($outputType_1$, $outputType_2$) \{
             \vshort{\ind ...}
-            \ind local $outputType_1$ $var_1$ = ...; local $outputType_2$ $var_2$ = ...;
+            \ind \kw{local} $outputType_1$ $var_1$ = ...; \kw{local} $outputType_2$ $var_2$ = ...;
             \ind return $(var_1, var_2)$;
         \}
-        \cmt{calling this method:}
-        local $inputType_1$ val = ...;
-        local $outputType_1$ x; local $outputType_2$ y;
+        \cmtd{calling this method:}
+        \kw{local} $inputType_1$ val = ...;
+        \kw{local} $outputType_1$ x; \kw{local} $outputType_2$ y;
         (x, y) = \p{name}(val);
     \end{code}
 
@@ -627,7 +637,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \subsubsection{Object declarations}
     \begin{code}
         \p{objectType} \p{objectName} \{
-            \ind method \{
+            \ind \kw{method} \p{methodName} \{
             \ind     \vshort{\ind \ind ...}
             \ind \}
         \}
@@ -654,7 +664,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     Definition in \cod{.dml}:
     \begin{code}
         extern typedef \kw{struct} \{
-            \ind method \p{name}(\p{\ty{$type_1$} $value_1$}) -> \p{\ty{out_type}};
+            \ind \kw{method} \p{name}(\p{\ty{$type_1$} $value_1$}) -> \p{\ty{out_type}};
         \} \ty{\p{sample}_interface_t};
     \end{code}
 
@@ -679,20 +689,20 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \begin{tabular}{|lp{2.5cm}c|}
         \hline
         %co & \begin{minipage}{2.5cm}unnamed (whole-device)\end{minipage} & 
-         & unnamed (whole-device) & named \\
+         & unnamed (whole-device) & named (wrapped in attribute) \\
         \hline
         \cod{connect} & - &
-            \begin{codem}[3cm]{green!15}
-                connect \p{C_a} \{
-                  \ind interface $I_1$ \{
+            \begin{codem}[3cm]{green!10}
+                connect \p{C_a} \{ \circled{1}
+                  \ind interface $I_1$ \{ \circled{2}
                       \vshort{\ind\ind ...}
                   \ind \}
-                  \ind interface $I_2$ \{
+                  \ind interface $I_2$ \{ \circled{2}
                       \vshort{\ind\ind ...}
                   \ind \}
                 \}
-                connect $C_B$ \{
-                  \ind interface $I_2$ \{
+                connect \p{C_b} \{  \circled{1}
+                  \ind interface $I_2$ \{  \circled{2}
                     \vshort{\ind\ind ...}
                     %  \vspace{-0.6em}
                     %\ind\ind ...
@@ -727,15 +737,22 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \hline
     \end{tabular}
 
-    To make interface required:
-        \begin{code}
-            \kw{param} required = true;
-        \end{code}
-    To make the whole \cod{connect} required:
-        \begin{code}
-            \kw{param} configuration = "required";
-            \# other options: "optional", "pseudo", TODO
-        \end{code}
+    \begin{tabulary}{\linewidth}{|LL}
+        \circled{1} & 
+            \begin{minipage}{\linewidth}
+                To make the whole \cod{connect} required:
+                \begin{code}
+                    \kw{param} configuration = "required";\\
+                    \cmtd{other variants: "optional" (default), "pseudo", "none"}
+                \end{code}
+            \end{minipage}
+                \\
+        \circled{2} & 
+            Individual interfaces are already \textbf{required} by default, to make them optional:
+                \begin{code}
+                    \kw{param} required = false;
+                \end{code}
+    \end{tabulary}
 
 \subsection{Debugging with Gdb}
 To debug simics and its modules itself:
@@ -752,7 +769,7 @@ To debug simics and its modules itself:
             \cmt{Terminal \#2:}
             \prompt bin/gdb
             >\,>\,> attach \p{12345}
-            >\,>\,> br \p{file.dml:100}  \ind \# break on line 100
+            >\,>\,> br \p{file.dml:100}  \ind \cmt{break on line 100}
             >\,>\,> continue
         \end{code}
 

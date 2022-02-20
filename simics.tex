@@ -35,6 +35,22 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0pt}
 
+% less spacing between items
+\usepackage{enumitem}
+
+\setlist[enumerate]{
+    labelindent=25pt,
+    leftmargin=*,
+    itemsep=-0.2em
+}
+\setlist[itemize]{
+    labelindent=25pt,
+    leftmargin=*,
+    itemsep=-0.2em
+}
+
+\raggedcolumns
+
 % Turn off header and footer
 \pagestyle{empty}
  
@@ -225,11 +241,11 @@ line/.style={-latex},
         code running in its isolated memory region, e.g. Linux or
         Windows guest
         \\
-        \textit{a Platform}  & a complete runnable model:
+        \textit{platform}  & a complete runnable model:
         full set-up of devices
         with CPU or with at least a clock provider
         \\
-        \textit{a Package}   & a set of devices, oftentimes constituting
+        \textit{package}   & a set of devices, oftentimes constituting
         1 platform, distributed as a whole in an archive and unpacked
         into 1 directory
         \\
@@ -246,7 +262,7 @@ line/.style={-latex},
 \subsection{Set up a workspace with platform package}
     \begin{code}
         \prompt \p{path/to/simics-base}/bin/project-setup\ \ .
-        \prompt bin/addon-manager -c
+        \prompt bin/addon-manager -c  \cmt{remove default package associations}
         \cmt{allow scripts \& shared libraries be found:}
         \prompt bin/addon-manager -s /path/to/platform-package
         \prompt bin/addon-manager -s /path/to/additional/package
@@ -306,6 +322,14 @@ line/.style={-latex},
         \end{code9}
     \end{tabular}
 
+\subsection{Environment \& Packages}
+    \begin{code}
+        \sprompt version  \cmt{list of installed packages}
+        \prompt ./simics -v \cmt{the same}
+        \sprompt pwd \cmt{current directory where simics is running}
+        \sprompt list-directories \cmt{where \Simics{} searches files}
+    \end{code}
+
 
     To debug chain of called auxiliary scripts \cod{include}s:
     \begin{code}
@@ -315,7 +339,7 @@ line/.style={-latex},
 \subsection{Printing device structure}
 To find devices by name/class or interface name:
     \begin{code}
-        \sprompt list-objects -all \p{name} \ind \cmt{searches also the class}
+        \sprompt list-objects -all \p{name} \ind \cmt{searches also for the class}
         \sprompt list-objects -all substr = \p{mem} \cmt{object names containing \p{mem}}
         \sprompt list-objects -all iface = \p{my_interface} \cmt{by interface name}
     \end{code}
@@ -341,7 +365,7 @@ To find all objects with the same class as given device:
 \begin{code}
     \sprompt write-device-reg
     \ind \ind \p{platf.myDev}.bank.\p{myBank.myGrp.myReg} 0x1
-    \cmt{(Register group \p{myGrp} may be absent in devices)}
+    \cmt{(Register groups like \p{myGrp} may be omitted in devices)}
     \sprompt read-device-reg \p{platf.myDev}.bank.\p{myBank.myGrp.myReg}
 \end{code}
 
@@ -391,16 +415,16 @@ It's done through attributes:
 \subsection{Running commands}
 \begin{code}
 \sprompt c[ontinue]
-\sprompt r[un] 100 cycles \ind \# or 10 steps or 0.1 seconds
-\sprompt ptime [-all] \ind \# to show target's time
+\sprompt r[un] 100 cycles \ind \cmt{or 10 steps or 0.1 seconds}
+\sprompt ptime [-all] \ind \cmt{to show target's time}
 \end{code}
 
 \subsection{Debugger commands}
 To use \Simics{} to debug target:
 \begin{code}
-dis[assemble] — show assembler commands at current address
+dis[assemble] \cmt{show assembler commands at current address}
 
-\# Break points
+\cmt{Break points:}
 break address
 break-hap Core-Magic-Instruction
 \end{code}
@@ -455,16 +479,9 @@ Save simics variables to file
             \cod{read-configuration \p{"checkpoint_name"}} & — restore it back
 \end{tabular}
 
-\subsection{Environment}
-\begin{code}
-    \sprompt version  \cmt{list of installed packages}
-    \prompt ./simics -v \cmt{the same}
-    \sprompt pwd \cmt{current directory where simics is running}
-\end{code}
-
 %\subsection{Making images}
 
-\subsection{Connects}
+\subsection{Connects — attributes that point to other devices}
 
 \begin{code}
     \cmt{to set connect attribute:}
@@ -572,7 +589,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \subsubsection{Statements}
     \begin{code}
         \cmtd{Printing through \kw{log} statements:}
-        \kw{log} \p{log-type}, \p{level}, \p{groups}: \p{"format-string"}, $arg_1$, ..., $arg_N$;
+        \kw{log} \p{log-type}, $\underbrace{level}_{\makebox[0pt]{\text{default 1\hspace{0.5cm}}}}$, $\underbrace{groups}_{\makebox[0pt]{\hspace{1.7cm}\text{default 0 (no group)}}}$: \p{"format-string"}, $arg_1$, ..., $arg_N$;
         \cmtd{(The "format-string" is the same as in C, see `man 3 printf')}
     \end{code}
     \global\rownum=0\relax
@@ -609,6 +626,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \end{code}
 
     \subsubsection{Types}
+    \ty{uint1}...\ty{uint64} and \ty{int1}...\ty{int64}.
 
     \subsubsection{Methods}
     They are called \textit{methods}, not functions, because
@@ -642,6 +660,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \ind \}
         \}
         register \p{regName} @ \p{offset} is ($template_1$, ...);
+        \cmtd{@ \p{offset} is a syntax for "\kw{param} offset = \p{offset};"}
     \end{code}
 
 \subsubsection{Module variables and other data objects}
@@ -769,7 +788,7 @@ To debug simics and its modules itself:
             \cmt{Terminal \#2:}
             \prompt bin/gdb
             >\,>\,> attach \p{12345}
-            >\,>\,> br \p{file.dml:100}  \ind \cmt{break on line 100}
+            >\,>\,> br \p{file.dml:100}  \ind \cmt{set break point on line 100 of file.dml}
             >\,>\,> continue
         \end{code}
 
@@ -906,12 +925,15 @@ It's possible to do most things in C, e.g. create device by
         devices together (writing components), for writing
         some (slow) devices, for unit-testing
         \\
-        \textit{Component}  & a special \Simics{} class that implement:
-        required: \cod{component} interface
-        optional: \cod{component_connector} interface
+        \textit{Component}  & a special \Simics{} class that 
+        forms a namespace tree and (typically) in its nodes
+        contains instances of device classses. Components implement
+        required \cod{component} interface and
+        optional \cod{component_connector} interface.
 
     \end{tabular}
 
+\includegraphics[width=\linewidth]{diagrams/classes_devices_components.pdf}
 \subsection{Creating devices dynamically}
 \begin{code}
 \sprompt create-myDevice-comp
@@ -998,6 +1020,17 @@ There can be a module with 1 component and many classes:
               conf.platf.$device_1$.$connect_1$ = conf.platf.$device_2$
           \end{code}
   \end{itemize}
+
+\subsection{Components vs functions}
+
+Components/connectors are used:
+\begin{itemize}
+    \item when there is a need to unite big number of devices
+        to prevent pollution of the surrounding namespace
+    \item when this is a separate device that can be used across
+        different packages independently
+\end{itemize}
+
 
 \subsection{Structure of components}
 

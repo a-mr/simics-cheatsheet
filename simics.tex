@@ -336,6 +336,13 @@ line/.style={-latex},
         \prompt ./simics -script-trace targets/\p{platf/platf.simics}
     \end{code}
 
+\subsection{Commands for running simulation}
+\begin{code}
+\sprompt c[ontinue]
+\sprompt r[un] 100 cycles \ind \cmt{or 10 steps or 0.1 seconds}
+\sprompt ptime [-all] \ind \cmt{to show target's time}
+\end{code}
+
 \subsection{Printing device structure}
 To find devices by name/class or interface name:
     \begin{code}
@@ -343,6 +350,15 @@ To find devices by name/class or interface name:
         \sprompt list-objects -all substr = \p{mem} \cmt{object names containing \p{mem}}
         \sprompt list-objects -all iface = \p{my_interface} \cmt{by interface name}
     \end{code}
+
+To examine device structure (\Simics{} \textit{components}
+and \textit{devices}) of a given component \p{myPlatform}:
+\begin{code}
+    \cmt{1-level representation: immediate children \p{myPlatform}:}
+    \sprompt list-objects namespace = \p{myPlatform}
+    \cmt{multi-level one: all children of \p{myPlatform} with all hierarchy:}
+    \sprompt list-objects namespace = \p{myPlatform} -tree
+\end{code}
 
 To find all objects with the same class as given device:
         \begin{code}
@@ -385,13 +401,13 @@ It's done through attributes:
 \subsubsection{Model information}
 
 \begin{code}
-    \cmt{Documentation + information about class \& module \& package:}
+    \cmt{To find info about class/module/package for your device:}
     \sprompt help \p{platf.myDev}
-    Class \textbf{myClass}
-
-    \vspace{0.3em}
-    Provided By
-    \ind   \p{myModule} (from \textbf{myPackage})
+    \ind Class \textbf{myClass}
+    \vspace{0.3em} \ind Provided By
+    \ind \ind   \textbf{myModule} (from \textbf{myPackage})
+    \vspace{0.2em}
+    \ind \cmt{...then documentation about the device is printed.}
     \vspace{0.3em}
 
     \cmt{To list all classes provided by a module:}
@@ -411,13 +427,6 @@ It's done through attributes:
     list-attributes \p{platf.myDevice} substr = \p{mem}
 \end{code}
 
-
-\subsection{Running commands}
-\begin{code}
-\sprompt c[ontinue]
-\sprompt r[un] 100 cycles \ind \cmt{or 10 steps or 0.1 seconds}
-\sprompt ptime [-all] \ind \cmt{to show target's time}
-\end{code}
 
 \subsection{Debugger commands}
 To use \Simics{} to debug target:
@@ -462,14 +471,14 @@ break-hap Core-Magic-Instruction
 \subsection{Saving info}
 Save logs from current point
 \begin{code}
-\sprompt start-command-line-capture
+    \sprompt start-command-line-capture \p{filename}
 \end{code}
 
 Save simics variables to file
 \begin{code}
-\sprompt start-command-line-capture
-\sprompt list-variables
-\sprompt stop-command-line-capture
+    \sprompt start-command-line-capture \p{filename}
+    \sprompt list-variables
+    \sprompt stop-command-line-capture
 \end{code}
 
 \subsection{Check points}

@@ -1,19 +1,13 @@
-\documentclass[8pt]{extarticle}
-\usepackage{multicol}
-\usepackage{calc}
+\ifdefined\cheatsheetCompact
+  \documentclass[8pt]{extarticle}
+  \usepackage[a4paper,xetex,landscape,left=1cm,right=1cm,
+              top=0.7cm,bottom=0.7cm]{geometry}
+\else
+  \documentclass[12pt]{extarticle}
+  \usepackage[a4paper,xetex,top=1.5cm,bottom=2cm]{geometry}
+\fi
 
-\usepackage[a4paper,xetex,landscape,left=1cm,right=1cm,
-            top=0.7cm,bottom=0.7cm]{geometry}
-
-% Compact titles %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{titlesec}
-
-\titlespacing*{\section}
-{-1.2ex}{0ex}{0ex}
-\titlespacing*{\subsection}
-{-1.2ex}{0ex}{0ex}
-\titlespacing*{\subsubsection}
-{-1.2ex}{0ex}{0ex}
 
 \titleformat{\section}
   {\normalfont\sffamily\large\bfseries\color{blue}}
@@ -26,7 +20,22 @@
 \titleformat{\subsubsection}
   {\normalfont\sffamily\small\bfseries\color{blue}}
   {\thesubsubsection}{1em}{}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{calc}
+
+\ifdefined\cheatsheetCompact
+\usepackage{multicol}
+
+% Compact titles %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\titlespacing*{\section}
+{-1.2ex}{0ex}{0ex}
+\titlespacing*{\subsection}
+{-1.2ex}{0ex}{0ex}
+\titlespacing*{\subsubsection}
+{-1.2ex}{0ex}{0ex}
+
+\raggedcolumns
 
 % Don't print section numbers
 \setcounter{secnumdepth}{1}
@@ -49,11 +58,26 @@
     itemsep=-0.2em
 }
 
-\raggedcolumns
-
 % Turn off header and footer
 \pagestyle{empty}
  
+\newcommand{\vshort}[1]{%
+\vspace{-0.6em}%
+#1%
+\vspace{-0.3em}}
+
+\else
+
+\newcommand{\vshort}[1]{%
+#1%
+}
+
+%\newcommand{\sectionbreak}{}
+
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \usepackage{tabulary}
 % make tabulary prevent overflows (https://tex.stackexchange.com/a/195088)
 \tymin=60pt
@@ -199,16 +223,17 @@ line/.style={-latex},
 
 \fontdimen2\font=0.6ex% inter word space
 
-\newcommand{\vshort}[1]{%
-\vspace{-0.6em}%
-#1%
-\vspace{-0.3em}}
-
 % This document specific declarations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\local}{\kw{local} }
 \usepackage{underscore}  % underscore is often used in code here
 \newcommand{\Simics}{\textcolor{cyan}{\textbf{Simics}}}
 
+\newlength{\connectwidth}
+\ifdefined\cheatsheetCompact
+\setlength{\connectwidth}{3cm}
+\else
+\setlength{\connectwidth}{5cm}
+\fi
 \newlength{\MyLen}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -218,7 +243,9 @@ line/.style={-latex},
 \setlength\emergencystretch{\hsize}\hbadness=10000
 
 
+\ifdefined\cheatsheetCompact
 \begin{multicols*}{3}
+\fi
     {\Large\centering \Simics{} cheatsheet\par}
     %\section*{Simics cheatsheet}
     %\begin{center} \textbf{\Large \Simics{} Cheat Sheet} \end{center}
@@ -228,7 +255,7 @@ line/.style={-latex},
 \subsection{Glossary \& Documentation}
     \settowidth{\MyLen}{\textit{[simics]-script.}}
     \rowcolors{1}{gray!15}{white}
-    \begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
+    \noindent\begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
         \textit{\Simics{} Base} & \cod{simics} executable + the set of
         supporting shared libraries (DLLs) + tools
         \\
@@ -278,7 +305,7 @@ line/.style={-latex},
     Shell command line arguments $\longrightarrow$ \Simics{} command line 
         correspondence:
 
-    \begin{tabular}{p{0.05\linewidth}p{0.85\linewidth}}
+    \noindent\begin{tabular}{p{0.05\linewidth}p{0.85\linewidth}}
         &
         \begin{code9}
             \prompt ./simics start.simics
@@ -440,7 +467,7 @@ break-hap Core-Magic-Instruction
 
 \subsection{Examining current state}
 
-\begin{tabular}{ll}
+\noindent\begin{tabular}{ll}
     pselect & show currently running CPU \\
     memory-map & print all mapped devices \\
     pregs & print all CPU registers \\
@@ -449,7 +476,7 @@ break-hap Core-Magic-Instruction
 
 \subsection{x86-specific and platform-specific commands}
 
-\begin{tabular}{ll}
+\noindent\begin{tabular}{ll}
     memory-trace \p{addr} & path to target \p{addr} \\
     pregs & to know x86 mode (16/32/64-bit), 1st line \\
     reset-button-press & to reboot the target \\
@@ -482,7 +509,7 @@ Save simics variables to file
 \end{code}
 
 \subsection{Check points}
-\begin{tabular}{ll}
+\noindent\begin{tabular}{ll}
             \cod{write-configuration \p{"checkpoint_name"}} & — save
             checkpoint \\
             \cod{read-configuration \p{"checkpoint_name"}} & — restore it back
@@ -505,14 +532,16 @@ Save simics variables to file
     \sprompt pcap-dump link=\p{ethernet_switch0} filename=\p{myFile}
 \end{code}
 
+\ifdefined\cheatsheetCompact
 \newpage
+\fi
 
 \section{\Simics{} DML 1.4 Programming \& C/DML API}
 
 \subsection{Glossary \& Documentation}
     \settowidth{\MyLen}{\texttt{dml-1.4-reference-man}}
     %\begin{tabulary}{\linewidth}{p{4cm}L}
-    \begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
+    \noindent\begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
         \textit{DML}         & Device Modelling Language is a
         wrapper over C for writing (fast) devices.
         Its compiler is included into \Simics{} Base.
@@ -541,7 +570,7 @@ The header of \p{example-dev}.dml is then:
     %\begin{tabulary}{\linewidth}{p{4cm}L}
     %\begin{tabular}{p{3cm}p{\linewidth-3.8cm}}
     \rowcolors{1}{}{}
-    \begin{tabular}{ll}
+    \noindent\begin{tabular}{ll}
         dml 1.4;                  & \cmtd{Obligatory .dml header} \\
         \kw{device} \p{example_dev};  & \cmtd{Class name.} \\
                                   & \cmtd{Note: - changed to underscore _}
@@ -585,7 +614,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \local \ty{uint64} u;
             u = -1; \ind \cmtd{equivalent to u = cast(-1, uint64) $\mathbf{= 2^{64}-1}$, all ones}
             \rowcolors{1}{}{}
-            \begin{tabular}{@{}ll}
+            \noindent\begin{tabular}{@{}ll}
                 u == -1 & \cmtd{FALSE! Equivalent to int64(u) == int64(-1),} \\
                         & \cmtd{where upper bit is cropped: int64(u) == ($\mathbf{2^{63}-1}$).}
             \end{tabular}
@@ -602,7 +631,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \cmtd{(The "format-string" is the same as in C, see `man 3 printf')}
     \end{code}
     \global\rownum=0\relax
-    \begin{tabulary}{\linewidth}{|LL|}
+    \noindent\begin{tabulary}{\linewidth}{|LL|}
         \hline
         \p{log-level} & usage rule \\
         \hline
@@ -675,7 +704,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 \subsubsection{Module variables and other data objects}
 
     \global\rownum=1\relax
-    \begin{tabulary}{\linewidth}{|LLLLL|}
+    \noindent\begin{tabulary}{\linewidth}{|LLLLL|}
         \hline
         DML construct & checkpointed & fields & address-mapped & arbitrary data\\
         \hline
@@ -710,17 +739,18 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \item \cod[magenta!35]{implement}s are for \textbf{in}bound calls
     \end{itemize}
 
-    \includegraphics[width=\linewidth]{diagrams/connect_implement.pdf}
+    \noindent\includegraphics[width=\linewidth]{diagrams/connect_implement.pdf}
 
     \global\rownum=1\relax
-    %\begin{tabulary}{\linewidth}{|lcc|}
-    \begin{tabular}{|lp{2.5cm}c|}
+    %\begin{tabulary}{\linewidth}{|LCC|}
+    %\begin{tabular}{|lp{2.5cm}c|}
+        \noindent\begin{tabular}{|lp{\connectwidth}p{\connectwidth}|}
         \hline
         %co & \begin{minipage}{2.5cm}unnamed (whole-device)\end{minipage} & 
          & unnamed (whole-device) & named (wrapped in attribute) \\
         \hline
         \cod{connect} & - &
-            \begin{codem}[3cm]{green!10}
+            \begin{codem}[\connectwidth]{green!10}
                 connect \p{C_a} \{ \circled{1}
                   \ind interface $I_1$ \{ \circled{2}
                       \vshort{\ind\ind ...}
@@ -737,7 +767,8 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \end{codem}
             \\[1.4cm]  % selected by trial
         \cod[magenta!35]{implement} &
-            \begin{codem}[2.5cm]{magenta!35}
+            %\begin{codem}[2.5cm]{magenta!35}
+            \begin{codem}[\connectwidth]{magenta!35}
                 implement $I_1$ \{
                     \ind ...
                 \}
@@ -747,7 +778,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \end{codem}
             (as in picture above)
             &
-            \begin{codem}[3cm]{magenta!35}
+            \begin{codem}[\connectwidth]{magenta!35}
                 port $P_A$ \{
                 \ind implement $I_1$ \{
                     \vshort{\ind\ind ...}
@@ -764,8 +795,9 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \\
         \hline
     \end{tabular}
+    %\end{tabulary}
 
-    \begin{tabulary}{\linewidth}{|LL}
+    \noindent\begin{tabulary}{\linewidth}{LL}
         \circled{1} & 
             \begin{minipage}{\linewidth}
                 To make the whole \cod{connect} required:
@@ -825,7 +857,7 @@ To debug simics and its modules itself:
     \p{T} and \p{cType} can be:
 
         \global\rownum=0\relax
-        \begin{tabulary}{\linewidth}{|LLL|}
+        \noindent\begin{tabulary}{\linewidth}{|LLL|}
             \hline
             \p{T}         & type spec & \p{cType} — DML/C type \\
             \hline
@@ -857,9 +889,8 @@ To debug simics and its modules itself:
     \renewcommand\_{\textunderscore\linebreak[1]}
 
 \subsection{Attribute initialization}
-    %\begin{tabulary}{\linewidth}{|LLL|}
-        \global\rownum=0\relax
-        \begin{tabulary}{\linewidth}{|p{3.5cm}p{2cm}p{2.2cm}|}
+    \global\rownum=0\relax
+    \noindent\begin{tabulary}{\linewidth}{|LLL|}
         \hline
         Execution stage & SIM_object_is_configured(obj) &
             SIM_is_restoring_state(\,) \\
@@ -921,7 +952,9 @@ To debug simics and its modules itself:
 It's possible to do most things in C, e.g. create device by
 \cod{SIM_create_object}, though normally it's done from Python components.
 
+\ifdefined\cheatsheetCompact
 \newpage
+\fi
 
 
 \section{\Simics{} configuration and build system}
@@ -929,7 +962,7 @@ It's possible to do most things in C, e.g. create device by
 \subsection{Glossary \& Documentation}
     \settowidth{\MyLen}{\texttt{Components}}
     %\begin{tabulary}{\linewidth}{p{4cm}L}
-    \begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
+    \noindent\begin{tabular}{p{\the\MyLen}p{\linewidth-\the\MyLen-0.8cm}}
         \textit{Python}      & this language is used for connecting 
         devices together (writing components), for writing
         some (slow) devices, for unit-testing
@@ -1054,5 +1087,7 @@ Copyright \copyright\ 2021—2022 Andrey Makarov \\
 \href{https://github.com/a-mr/simics-cheatsheet}{https://github.com/a-mr/simics-cheatsheet}
 Version 6.0.100
 
+\ifdefined\cheatsheetCompact
 \end{multicols*}
+\fi
 \end{document}

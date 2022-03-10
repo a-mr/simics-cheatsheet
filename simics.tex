@@ -250,7 +250,7 @@ line/.style={-latex},
     %\section*{Simics cheatsheet}
     %\begin{center} \textbf{\Large \Simics{} Cheat Sheet} \end{center}
 
-\section{\Simics{} Usage}
+\section{\Simics{} Usage (command line)}
 
 \subsection{Glossary \& Documentation}
     \settowidth{\MyLen}{\textit{[simics]-script.}}
@@ -285,6 +285,14 @@ line/.style={-latex},
     \end{tabular}
 
     Below \prompt stands for Unix shell prompt, \sprompt for \Simics{} prompt.
+
+\subsection{Getting help}
+\begin{code}
+    \cmt{Get help on some command:}
+    \sprompt{help \p{instantiate-components}}
+    \cmt{Finding sections of documentation mentioning it:}
+    \sprompt{apropos \p{instantiate-components}}
+\end{code}
 
 \subsection{Set up a workspace with platform package}
     \begin{code}
@@ -389,8 +397,10 @@ and \textit{devices}) of a given component \p{myPlatform}:
 
 To find all objects with the same class as given device:
         \begin{code}
+            \begin{code}
             \sprompt \p{platf.myDevice}->classname
             \p{my_class}
+            \end{code}
             \sprompt list-objects -all \p{my_class}
             \sprompt list-objects -all class = \p{my_class}
         \end{code}
@@ -423,18 +433,27 @@ It's done through attributes:
     \p{platf.myDev}->\p{myBank_myGrp_myReg}
 \end{code}
 
-\subsection{Device information}
+\subsection{Connects — attributes that point to other devices}
 
-\subsubsection{Model information}
+\begin{code}
+    \cmt{to set connect attribute:}
+    \sprompt \p{platf.myDevice}->\p{myConnect} = "\p{platf.anotherDevice}"
+    \cmt{to zero connect attribute:}
+    \sprompt \p{platf.myDevice}->\p{myConnect} = FALSE \ind\cmt{obvious ;-)}
+\end{code}
+
+\subsection{Device information: static}
 
 \begin{code}
     \cmt{To find info about class/module/package for your device:}
+    \begin{code}
     \sprompt help \p{platf.myDev}
     \ind Class \textbf{myClass}
     \vspace{0.3em} \ind Provided By
     \ind \ind   \textbf{myModule} (from \textbf{myPackage})
     \vspace{0.2em}
     \ind \cmt{...then documentation about the device is printed.}
+    \end{code}
     \vspace{0.3em}
 
     \cmt{To list all classes provided by a module:}
@@ -443,7 +462,7 @@ It's done through attributes:
     \sprompt \p{platf.myDev}.info
 \end{code}
 
-\subsubsection{Runtime information}
+\subsection{Device information: dynamic}
 
 \begin{code}
     \cmt{Runtime information:}
@@ -483,6 +502,13 @@ break-hap Core-Magic-Instruction
     power-button-press & to press power button \\
 \end{tabular}
 
+\subsection{Memory spaces}
+\begin{code}
+    \cmt{To find memory spaces the device is mapped in:}
+    \sprompt devs \p{platf.myDevice}
+\end{code}
+
+
 \subsection{Moving files target \texorpdfstring{$\longleftrightarrow$}{<->} host}
 %\subsection{Moving files target $\longleftrightarrow$ host}
 %\subsection{Moving files target <-> host}
@@ -517,15 +543,6 @@ Save simics variables to file
 
 %\subsection{Making images}
 
-\subsection{Connects — attributes that point to other devices}
-
-\begin{code}
-    \cmt{to set connect attribute:}
-    \sprompt \p{platf.myDevice}->\p{myConnect} = "\p{platf.anotherDevice}"
-    \cmt{to zero connect attribute:}
-    \sprompt \p{platf.myDevice}->\p{myConnect} = FALSE
-\end{code}
-
 \subsection{Miscellaneous}
 \begin{code}
     \cmt{To dump network packages (for analysis with Wireshark)}:
@@ -555,6 +572,12 @@ Save simics variables to file
         \textit{API Reference Manual} & API function list for DML \& C,
         describes ownership rules
     \end{tabular}
+
+\subsection{Getting help}
+\begin{code}
+    \cmt{Print explanation of C/Python/DML API functions:}
+    \sprompt api-help \p{SIM_add_configuration}
+\end{code}
 
 \subsection{Create stub device}
 
@@ -816,8 +839,11 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 
 \subsection{Debugging with Gdb}
 To debug simics and its modules itself:
+            %\cmt{Terminal \#1:}
         \begin{code}
-            \cmt{Terminal \#1:}
+            %\begin{center}Terminal \#1:\end{center}
+            {\large\centering Terminal \#1:\par}
+            \cmt{Recompile your module with debugging support:}
             \prompt make clobber-\p{my-module}
             \prompt make D=1 \p{my-module}
             \prompt ./simics
@@ -826,7 +852,7 @@ To debug simics and its modules itself:
         \end{code}
 
         \begin{code}[colback=blue!15]
-            \cmt{Terminal \#2:}
+            {\large\centering Terminal \#2:\par}
             \prompt bin/gdb
             >\,>\,> attach \p{12345}
             >\,>\,> br \p{file.dml:100}  \ind \cmt{set break point on line 100 of file.dml}
@@ -834,7 +860,7 @@ To debug simics and its modules itself:
         \end{code}
 
         \begin{code}
-            \cmt{Back to terminal \#1:}
+            {\large\centering Back to terminal \#1:\par}
             \sprompt run-command-file targets/\p{platf/platf.simics}
         \end{code}
 

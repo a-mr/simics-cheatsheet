@@ -84,6 +84,7 @@
 \tymax=\maxdimen
 
 \usepackage[table,usenames,dvipsnames]{xcolor}
+\usepackage{adjustbox}
 \usepackage[most]{tcolorbox}
 \usepackage{fontspec}
 \usepackage[urlbordercolor=blue,linkbordercolor=cyan,
@@ -96,6 +97,7 @@
 % some font shapes finding so I deleted it leaving only "static" ttf fonts.
 
 \usepackage{fourier} % for \warning
+\newcommand{\mywarning}{{\huge \warning}}
 
 \setmainfont{Nunito}[
     FontFace={el}{n}{Font=* ExtraLight},
@@ -351,7 +353,7 @@ line/.style={-latex},
         & \begin{code9}
             \prompt ./simics -e ‘\$config_variable1=value; \$config_var2=value’ start.simics
 
-            \cmt{but NOT ./simics start.simics -e \$varibables ...}
+            \cmt{\mywarning NOT ./simics start.simics -e \$varibables ...}
         \end{code9}
         \vspace{0.05cm}
         \\
@@ -491,6 +493,18 @@ break address
 break-hap Core-Magic-Instruction
 \end{code}
 
+\subsection{Memory spaces}
+
+All target software runs on CPU and can access devices only through
+hierarchy of memory spaces:
+
+\noindent\includegraphics[width=\linewidth]{diagrams/mem_spaces.pdf}
+
+\begin{code}
+    \cmt{To find memory spaces the device is mapped in:}
+    \sprompt devs \p{platf.myDevice}
+\end{code}
+
 \subsection{Examining current state}
 
 \noindent\begin{tabular}{ll}
@@ -508,12 +522,6 @@ break-hap Core-Magic-Instruction
     reset-button-press & to reboot the target \\
     power-button-press & to press power button \\
 \end{tabular}
-
-\subsection{Memory spaces}
-\begin{code}
-    \cmt{To find memory spaces the device is mapped in:}
-    \sprompt devs \p{platf.myDevice}
-\end{code}
 
 
 \subsection{Moving files target \texorpdfstring{$\longleftrightarrow$}{<->} host}
@@ -584,7 +592,11 @@ Save simics variables to file
         programming \\
         \textit{DML 1.4 Reference Manual} & language specification \\
         \textit{API Reference Manual} & API function list for DML \& C,
-        describes ownership rules
+        describes ownership rules\\
+        \textit{model writers} & those who write \Simics{} devices\\
+        \textit{users} & those who use \Simics{} devices:
+                         device driver writers, firmware/UEFI writers,
+                         validators/testers, etc
     \end{tabular}
 
 \subsection{Getting help}
@@ -673,11 +685,25 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         \hline
         \p{log-level} & usage rule \\
         \hline
-        1 & messages to be read by all, esp. errors \\
+        1 & most important messages (for both users and model writers),
+            typically \texttt{error}\\
         2 & crucial events for boards/devices, e.g. their resets \\
-        3 & any other messages to be read by users: device driver writers,
-            validators/testers, etc \\
-        4 & internal device debug messages for model writers\\
+        3 & any other messages (for users) \\
+        4 & internal device debug messages (for model writers)\\
+        \hline
+    \end{tabulary}
+    \noindent\begin{tabulary}{\linewidth}{|LL|}
+        \hline
+        \p{log-type} & usage rule \\
+        \hline
+        \texttt{info} & informational message \\
+        \texttt{spec_viol} & specification violation by target software (for users) \\
+        \texttt{unimpl} & attempt to use not implemented functionality (for users) \\
+        \texttt{error} & internal device error (for model writers).
+                \mywarning There is a limit (default 10_000) after
+                which simulation stops!\\
+        \texttt{critical} & like \texttt{spec_viol} or error, but \mywarning
+                   stops simulation \\
         \hline
     \end{tabulary}
     \begin{code}
@@ -759,18 +785,21 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 
     Definition in \cod{.dml}:
     \begin{code}
-        extern typedef \kw{struct} \{
-            \ind \kw{method} \p{name}(\p{\ty{$type_1$} $value_1$}) -> \p{\ty{out_type}};
+        \kw{extern typedef struct} \{
+            \ind \kw{method} \p{name}(\ty{conf_object_t *}\hl{obj}, \p{\ty{$type_1$} $value_1$})
+            \ind \ind \ind -> \p{\ty{out_type}};
         \} \ty{\p{sample}_interface_t};
     \end{code}
 
     Obligatory definition in C \cod{.h} file \textbf{for using the interface from Python}:
     \begin{code}
-        SIM_INTERFACE(\p{sample}) \{  \cmtd{essentially 'typedef \kw{struct}' also}
-            \ind \ty{\p{out_type}} (*\p{name})(\ty{conf_object_t *} \hl{obj}, \ty{\p{$type_1$}} \p{$value_1$});
+        SIM_INTERFACE(\p{sample}) \{  \cmtd{essentially '\kw{typedef struct}' also}
+            \ind \ty{\p{out_type}} (*\p{name})(\ty{conf_object_t *}\hl{obj}, \ty{\p{$type_1$}} \p{$value_1$});
         \}
         \#define \p{SAMPLE}_INTERFACE "\p{sample}" \ind \cmtd{necessary!}
     \end{code}
+
+    Then it is called \textbf{without} \cod{\hl{obj}}: just \cod{\p{name}(\p{$value_1$})}.
 
     \subsubsection{Explaining \cod{connect}s and \cod[magenta!35]{implement}s}
 
@@ -853,6 +882,17 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
                     \kw{param} required = false;
                 \end{code}
     \end{tabulary}
+
+\mywarning \cod[magenta!35]{implement \{\}} does NOT check that all (or any!) methods
+of an interface are really provided, defaulting to \kw{NULL}.
+
+\subsection{Calling device code from Python}
+
+If \p{device} \cod{implement}s interface $iface_1$ then its methouds
+can be invoked from \Simics{} command line via Python:
+\begin{code}
+    @conf.\p{platf.device}.iface.$iface_1$.$method_1$(\textit{argument_1}, ...)
+\end{code}
 
 \subsection{Debugging with Gdb}
 To debug simics and its modules itself:
@@ -1117,21 +1157,52 @@ Components/connectors are used:
         different packages independently
 \end{itemize}
 
-{\LARGE \warning} Do not confuse: \textit{Connectors} connect component 
-objects, while \textit{connects} (+implements) connect device objects.
+\mywarning Do not confuse: \textit{Connectors} connect \textit{component}
+objects, while \textit{connects} (+implements) connect \textit{device}
+objects. \cod{connect} command acts on connectors only!
 
-\subsection{Structure of components}
+\subsection{Structure and initialization order}
 
-\subsection{Calling device code from Python}
+Let us examine initialization of modules $\longrightarrow$ components
+$\longrightarrow$ devices for this sample program:
 
-Then the interface can be invoked from \Simics{} command line via Python:
 \begin{code}
-    @conf.platf.device.ifaces.$iface_1$.$method_1$(1, None)
+\circled{1} load-module block-a-comp
+\circled{2} load-module block-b-comp
+\circled{3} create-block-a-comp "block_a_component"
+\circled{4} create-block-b-comp "block_b_component"
+\circled{5} connect block_a_component.eth0 block_b_component.eth0
+\circled{6} instantiate-components
 \end{code}
+
+\begin{itemize}[left=1.5em]
+    \item[\cod{\circled{1}}]
+        \begin{minipage}[t]{\linewidth}
+            \adjustbox{valign=t}{%
+                \includegraphics[width=\linewidth]{diagrams/init_load_module.pdf}
+            }
+        \end{minipage}
+    \item[\cod{\circled{2}}] The same (substitute a$→$b).
+
+    \item[\cod{\circled{3}}]
+        Note that \cod[magenta!35]{add_objects} adds normally pre-configured objects:
+        \begin{minipage}[t]{\linewidth}
+            \adjustbox{valign=t}{%
+                \includegraphics[width=\linewidth]{diagrams/init_create_comp.pdf}
+            }
+        \end{minipage}
+
+    \item[\cod{\circled{4}}] The same (substitute a$→$b).
+
+    \item[\cod{\circled{5}}]
+
+    \item[\cod{\circled{6}}]
+
+\end{itemize}
 
 Copyright \copyright\ 2021—2022 Andrey Makarov \\
 \href{https://github.com/a-mr/simics-cheatsheet}{https://github.com/a-mr/simics-cheatsheet}
-Version 6.0.100
+Version 0.2 (Simics 6.0.116)
 
 \ifdefined\cheatsheetCompact
 \end{multicols*}

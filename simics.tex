@@ -1195,9 +1195,41 @@ $\longrightarrow$ devices for this sample program:
     \item[\cod{\circled{4}}] The same (substitute a$→$b).
 
     \item[\cod{\circled{5}}]
+        \begin{minipage}[t]{\linewidth}
+            \adjustbox{valign=t}{%
+                \includegraphics[width=\linewidth]{diagrams/init_connect.pdf}
+            }
+        \end{minipage}
+        Note \cod[magenta!35]{get_connect_data} is basically just
+        a \cod{switch/case} statement that chooses which data (object
+        references, port names, etc) to pass to \cod[magenta!35]{connect}
+        function call below.
 
-    \item[\cod{\circled{6}}]
+    \item[\cod{\circled{6a}}]
+        \begin{minipage}[t]{\linewidth}
+            \adjustbox{valign=t}{%
+                \includegraphics[width=\linewidth]{diagrams/init_instantiate_components.pdf}
+            }
+        \end{minipage}
 
+    \item[\cod{\circled{6b}}]
+        Pre-configuration ends and finally \cod{instantiate-components}
+        begins to configure real DML objects:
+
+        \begin{minipage}[t]{\linewidth}
+            \adjustbox{valign=t}{%
+                \includegraphics[width=\linewidth]{diagrams/init_instantiate_components_real_devices.pdf}
+            }
+        \end{minipage}
+
+    \item[\cod{\circled{6c}}]
+        Rarely some additional tweaks are required on real (already configured) device:
+
+        \begin{minipage}[t]{\linewidth}
+            \adjustbox{valign=t}{%
+                \includegraphics[width=\linewidth]{diagrams/init_instantiate_components_post.pdf}
+            }
+        \end{minipage}
 \end{itemize}
 
 Copyright \copyright\ 2021—2022 Andrey Makarov \\

@@ -22,6 +22,7 @@
   {\thesubsubsection}{1em}{}
 
 \usepackage{calc}
+\usepackage{enumitem}
 
 \ifdefined\cheatsheetCompact
 \usepackage{multicol}
@@ -45,7 +46,6 @@
 \setlength{\parskip}{0pt}
 
 % less spacing between items
-\usepackage{enumitem}
 
 \setlist[enumerate]{
     labelindent=25pt,
@@ -214,6 +214,7 @@ line/.style={-latex},
 % Syntax:
 \newcommand{\kw}[1]{\textcolor{magenta}{\textbf{#1}}}
 \definecolor{myOrange}{rgb}{0.7,0.25,0}
+\definecolor{lightBrown}{HTML}{ffcc99}
 \newcommand{\ty}[1]{\textcolor{myOrange}{\textbf{#1}}}
 % Misc highlighting:
 \newcommand{\hl}[1]{\textcolor{blue}{\textbf{#1}}}
@@ -229,6 +230,7 @@ line/.style={-latex},
 
 % This document specific declarations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\local}{\kw{local} }
+\newcommand{\class}{\kw{class} }
 \usepackage{underscore}  % underscore is often used in code here
 \newcommand{\Simics}{\textcolor{cyan}{\textbf{Simics}}}
 
@@ -562,12 +564,12 @@ Save simics variables to file
 \begin{code}
     \cmt{To dump network packages (for analysis with Wireshark)}:
     \sprompt pcap-dump link=\p{ethernet_switch0} filename=\p{myFile}
-    \begin{code}
+\end{code}
+
+\begin{code}
     \cmt{Treat all input as Python code}
     \sprompt python-mode
         \sprompt \sprompt \sprompt \p{Enter your code}
-    \end{code}
-    
 \end{code}
 
 \ifdefined\cheatsheetCompact
@@ -1163,6 +1165,33 @@ objects. \cod{connect} command acts on connectors only!
 
 \subsection{Structure and initialization order}
 
+A typical structure of component class code:
+\begin{code}
+    \class block_a_comp(StandardComponent):
+        \ind @classmethod
+        \ind \kw{def} register(cls):
+            \vshort{\ind\ind ...}
+        \ind \kw{def} __init__(self):
+            \vshort{\ind\ind ...}
+        \ind \kw{def} setup(self):
+            \vshort{\ind\ind ...}
+        \ind \kw{def} add_objects(self):
+            \vshort{\ind\ind ...}
+        \ind \class \p{attribute_name}(ConfigAttribute):
+            \ind \ind \kw{def} _initialize(self):
+                \vshort{\ind\ind\ind ...}
+            \ind \ind \kw{def} _finalize(self):
+                \vshort{\ind\ind\ind ...}
+        \ind \class component_connector(Interface):
+            \ind \ind \kw{def} get_connect_data(self, block_a_connector):
+                \vshort{\ind \ind \ind...}
+            \ind \ind \kw{def} connect(self, block_a_connector, data_from_b):
+                \vshort{\ind \ind \ind...}
+        \vshort{\ind ...}
+        \ind \class component(StandardComponent.component):
+        \vshort{\ind ...}
+\end{code}
+
 Let us examine initialization of modules $\longrightarrow$ components
 $\longrightarrow$ devices for this sample program:
 
@@ -1175,6 +1204,9 @@ $\longrightarrow$ devices for this sample program:
 \circled{6} instantiate-components
 \end{code}
 
+The corresponding break down of functions that are normally
+\cod[lightBrown]{simics-defined} or \cod[magenta!35]{user-defined}.
+
 \begin{itemize}[left=1.5em]
     \item[\cod{\circled{1}}]
         \begin{minipage}[t]{\linewidth}
@@ -1182,7 +1214,7 @@ $\longrightarrow$ devices for this sample program:
                 \includegraphics[width=\linewidth]{diagrams/init_load_module.pdf}
             }
         \end{minipage}
-    \item[\cod{\circled{2}}] The same (substitute a$→$b).
+    \item[\cod{\circled{2}}] The same for \cod{block_b_comp}
 
     \item[\cod{\circled{3}}]
         Note that \cod[magenta!35]{add_objects} adds normally pre-configured objects:
@@ -1192,7 +1224,7 @@ $\longrightarrow$ devices for this sample program:
             }
         \end{minipage}
 
-    \item[\cod{\circled{4}}] The same (substitute a$→$b).
+    \item[\cod{\circled{4}}] The same for \cod{block_b_comp \& block_b}
 
     \item[\cod{\circled{5}}]
         \begin{minipage}[t]{\linewidth}
@@ -1213,7 +1245,7 @@ $\longrightarrow$ devices for this sample program:
         \end{minipage}
 
     \item[\cod{\circled{6b}}]
-        Pre-configuration ends and finally \cod{instantiate-components}
+        Pre-configuration phase ends and finally \cod{instantiate-components}
         begins to configure real DML objects:
 
         \begin{minipage}[t]{\linewidth}
@@ -1222,8 +1254,10 @@ $\longrightarrow$ devices for this sample program:
             }
         \end{minipage}
 
+        After that phase \cod{self.get_slot("name")} returns real, already configured, device objects.
+
     \item[\cod{\circled{6c}}]
-        Rarely some additional tweaks are required on real (already configured) device:
+        Rarely some additional tweaks are required on configured objects:
 
         \begin{minipage}[t]{\linewidth}
             \adjustbox{valign=t}{%

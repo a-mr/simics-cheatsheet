@@ -31,7 +31,7 @@
       <data key="d5"/>
       <data key="d6">
         <y:ShapeNode>
-          <y:Geometry height="30.0" width="420.4000000000002" x="119.7999999999999" y="105.0"/>
+          <y:Geometry height="30.0" width="420.4000000000002" x="119.7999999999999" y="96.04"/>
           <y:Fill color="#FF99CC" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="31.9375" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="348.841796875" x="35.7791015625001" xml:space="preserve" y="-0.96875">block_b_comp.get_connect_data(self, block_b_connector)

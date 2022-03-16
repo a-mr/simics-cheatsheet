@@ -31,7 +31,7 @@
       <data key="d5"/>
       <data key="d6">
         <y:ShapeNode>
-          <y:Geometry height="30.0" width="420.23209557179723" x="89.99999999999989" y="120.0"/>
+          <y:Geometry height="30.0" width="420.23209557179723" x="89.99999999999989" y="100.0"/>
           <y:Fill color="#FF99CC" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="31.9375" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="379.275390625" x="20.478352473398616" xml:space="preserve" y="-0.96875">block_a_comp.class component_connector(Interface).connect(
@@ -44,7 +44,7 @@
       <data key="d5"/>
       <data key="d6">
         <y:ShapeNode>
-          <y:Geometry height="30.0" width="389.68000000000006" x="120.55209557179705" y="75.0"/>
+          <y:Geometry height="30.0" width="389.68000000000006" x="120.55209557179705" y="65.0"/>
           <y:Fill color="#FF99CC" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="31.9375" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="356.58203125" x="16.548984375000032" xml:space="preserve" y="-0.96875">set connects of block_b DML device:
@@ -57,7 +57,7 @@ block_b_component.block_b_device = data_from_a["field"]<y:LabelModel><y:SmartNod
       <data key="d5"/>
       <data key="d6">
         <y:ShapeNode>
-          <y:Geometry height="30.0" width="390.4000605269563" x="119.83203504484084" y="165.0"/>
+          <y:Geometry height="30.0" width="390.4000605269563" x="119.83203504484084" y="135.0"/>
           <y:Fill color="#FF99CC" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="31.9375" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="356.318359375" x="17.04085057597814" xml:space="preserve" y="-0.96875">set connects of block_a DML device:
@@ -70,7 +70,7 @@ block_a_component.block_a_device = data_from_b["field"]<y:LabelModel><y:SmartNod
       <data key="d5"/>
       <data key="d6">
         <y:ShapeNode>
-          <y:Geometry height="30.0" width="420.23209557179723" x="89.99999999999989" y="210.0"/>
+          <y:Geometry height="30.0" width="420.23209557179723" x="89.99999999999989" y="173.29220519223327"/>
           <y:Fill color="#FFCC99" transparent="false"/>
           <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="31.9375" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="285.044921875" x="67.59358684839862" xml:space="preserve" y="-0.96875">block_a_comp.component.pre_instantiate(self)
@@ -84,7 +84,7 @@ block_b_comp.component.pre_instantiate(self)<y:LabelModel><y:SmartNodeLabelModel
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="-210.11604778589856" sy="0.0" tx="0.0" ty="0.0">
-            <y:Point x="90.0" y="90.0"/>
+            <y:Point x="90.0" y="80.0"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="none" target="standard"/>
@@ -97,7 +97,7 @@ block_b_comp.component.pre_instantiate(self)<y:LabelModel><y:SmartNodeLabelModel
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="-210.1160477858985" sy="0.0" tx="-195.20003026347814" ty="0.0">
-            <y:Point x="90.0" y="180.0"/>
+            <y:Point x="90.0" y="150.0"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="none" target="standard"/>

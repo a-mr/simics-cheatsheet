@@ -64,7 +64,7 @@
 \newcommand{\vshort}[1]{%
 \vspace{-0.6em}%
 #1%
-\vspace{-0.3em}}
+\vspace{0.0em}}
 
 \else
 
@@ -215,6 +215,7 @@ line/.style={-latex},
 \newcommand{\kw}[1]{\textcolor{magenta}{\textbf{#1}}}
 \definecolor{myOrange}{rgb}{0.7,0.25,0}
 \definecolor{lightBrown}{HTML}{ffcc99}
+\definecolor{lightCyan}{HTML}{00ffff}
 \newcommand{\ty}[1]{\textcolor{myOrange}{\textbf{#1}}}
 % Misc highlighting:
 \newcommand{\hl}[1]{\textcolor{blue}{\textbf{#1}}}
@@ -235,10 +236,13 @@ line/.style={-latex},
 \newcommand{\Simics}{\textcolor{cyan}{\textbf{Simics}}}
 
 \newlength{\connectwidth}
+\newlength{\implementwidth}
 \ifdefined\cheatsheetCompact
-\setlength{\connectwidth}{3cm}
+\setlength{\connectwidth}{3.5cm}
+\setlength{\implementwidth}{2.5cm}
 \else
 \setlength{\connectwidth}{5cm}
+\setlength{\implementwidth}{5cm}
 \fi
 \newlength{\MyLen}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -436,9 +440,9 @@ To find all objects with the same class as given device:
 %\subsubsection{Writing/reading \textbf{without} side effects (aka set/get)}
 \subsubsection{Writing/reading {\bseries without} side effects (aka set/get)}
 
-It's done through attributes:
 \begin{code}
-    \cmt{To set to value 0x1}
+    \cmt{You can use set-device-reg / get-device-reg.}
+    \cmt{Or do it through attributes, e.g. to set to value 0x1:}
     \p{platf.myDev}->\p{myBank_myGrp_myReg} = 0x1
     \cmt{To get the value:}
     \p{platf.myDev}->\p{myBank_myGrp_myReg}
@@ -570,6 +574,11 @@ Save simics variables to file
     \cmt{Treat all input as Python code}
     \sprompt python-mode
         \sprompt \sprompt \sprompt \p{Enter your code}
+\end{code}
+
+\begin{code}
+    \cmt{To open Simics Documentation in browser run from workspace:}
+    \prompt ./documentation \ind \cmt{Or .\textbackslash{}documentation.bat on Windows}
 \end{code}
 
 \ifdefined\cheatsheetCompact
@@ -730,13 +739,34 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         x[8]  \cmtd{Get bit 8 of integer $x$:}
     \end{code}
 
-    \subsubsection{Types}
-    \ty{uint1}...\ty{uint64} and \ty{int1}...\ty{int64}.
+    \subsubsection{Scalar types}
+    \ty{uint1}...\ty{uint64} and \ty{int1}...\ty{int64} (+ aliases:
+    \ty{int} $→$ \ty{int32}, \ty{char} $→$ \ty{int8}).
+    \\
+    C-like types: \ty{size_t}, \ty{uintptr_t}, \ty{uint8_be/le_t} ... \ty{uint64_be/le_t},
+    \ty{double}, \ty{bool}.
+
+    \subsubsection{Derived types}
+    \begin{code}
+        \kw{typedef} \underline{\kw{struct} \{ \p{member declarations;} \}} \p{typeName};
+        \cmtd{Layout members can be only whole-byte (\ty{int8}, \ty{int16}, ...)}:
+        \kw{typedef} \underline{\kw{layout} "big-endian" \{ \p{member declarations;} \}} \p{typeName};
+        \cmtd{Bitfield size \p{sizeBits} can be 1 ... 64 and field size arbitrary:}
+        \kw{typedef} \underline{\kw{bitfields} \p{sizeBits} \{}
+            \ind \underline{\ty{uint3}  a @ [31:29];} \ind \cmtd{An example}
+            \ind ...
+        \underline{\}} \p{typeName};
+        \cmtd{All the types can be used for variable definitions inline, e.g.:}
+        \{
+            \ind \kw{local} \underline{\kw{struct} \{ uint8 \p{field}; \}} \p{variableName};
+            \ind \p{variableName.field} = 255;
+    \end{code}
+    
 
     \subsubsection{Methods}
     They are called \textit{methods}, not functions, because
     they accept \textbf{implicit} 1st argument — object (current
-    device), like C++ methods.
+    device), like C++ methods. Thus multiple instances of each device are allowed.
     \begin{code}
         \kw{method} \p{name}(\ty{$inputType_1$} $arg_1$) -> (\ty{$outputType_1$}, \ty{$outputType_2$}) \{
             \vshort{\ind ...}
@@ -815,7 +845,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \global\rownum=1\relax
     %\begin{tabulary}{\linewidth}{|LCC|}
     %\begin{tabular}{|lp{2.5cm}c|}
-        \noindent\begin{tabular}{|lp{\connectwidth}p{\connectwidth}|}
+        \noindent\begin{tabular}{|lp{\implementwidth}p{\connectwidth}|}
         \hline
         %co & \begin{minipage}{2.5cm}unnamed (whole-device)\end{minipage} & 
          & unnamed (whole-device) & named (wrapped in attribute) \\
@@ -839,7 +869,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \\[1.4cm]  % selected by trial
         \cod[magenta!35]{implement} &
             %\begin{codem}[2.5cm]{magenta!35}
-            \begin{codem}[\connectwidth]{magenta!35}
+            \begin{codem}[\implementwidth]{magenta!35}
                 implement $I_1$ \{
                     \ind ...
                 \}
@@ -855,13 +885,13 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
                     \vshort{\ind\ind ...}
                 \ind\}
                 \ind implement $I_2$ \{
-                    \ind\ind \emph{... variant 1 ...}
+                    \ind\ind \emph{... 1st way of $I_2$ ...}
                       \vspace{-0.3em}
                 \ind\}
                 \}
                 port $P_B$ \{
                 \ind implement $I_2$ \{
-                    \ind\ind \emph{... variant 2 ...}
+                    \ind\ind \emph{... 2nd way of $I_2$ ...}
             \end{codem}
             \\
         \hline
@@ -966,7 +996,7 @@ To debug simics and its modules itself:
         \end{tabulary}
 
     List items are accessed by \cod{SIM_attr_list_item}.
-    Type specs can be OR'ed as \cod{$x_1$\kw{|}$x_2$}.
+    Type specs can be OR'ed as \cod{$x_1$\kw{|}\,$x_2$}.
     Type spec is used in \cod{\kw{param} type = "..."}. For first 4
     types there are predefined DML templates \cod{uint64_attr},
     \cod{int64_attr}, \cod{bool_attr}, \cod{double_attr}.
@@ -988,6 +1018,9 @@ To debug simics and its modules itself:
     \end{tabulary}
 
 \subsection{Standard register templates}
+\cod{read}, \cod{write} — make a register readable/writeable,
+\cod{init_val} — reset a register to value of \cod{\kw{param} init_val = ...}
+of the same name.
 
 \subsection{Compile-time statements \& conditional compilation}
 
@@ -1007,9 +1040,9 @@ To debug simics and its modules itself:
         \vshort{\ind ...}
     \}
     \cmtd{Compile-time ternary operator \kw{\#?} \kw{\#:}}
-    param mode = p1 == 20 \kw{\#?} "equal 20" \kw{\#:} "not equal 20";
+    \kw{param} mode = p1 == 20 \kw{\#?} "equal 20" \kw{\#:} "not equal 20";
     \cmtd{Represent \textit{value} of parameter as string}
-    param p1_str = stringify(p1);  \cmtd{results in "10"}
+    \kw{param} p1_str = stringify(p1);  \cmtd{results in "10"}
 \end{code}
 
 
@@ -1030,7 +1063,8 @@ To debug simics and its modules itself:
 \subsection{The secret of DML}
         Many "internal" features like registers and even connects are actually
         normal templates for objects (\cod{\kw{is} object;}) in plain DML
-        defined in \texttt{1.4/dml-builtins.dml} and thus they can be expanded.
+        defined in \texttt{simicsBase/\{linux64|win64\}/bin/dml/1.4/dml-builtins.dml}
+        and thus they can be expanded.
 
 \subsection{C API}
 
@@ -1086,7 +1120,11 @@ A \Simics{} module includes classes, there are 2 types of them:
 %
 %\end{tikzpicture}
 
+Component is a \textbf{support} entity: normally components are used only
+on initialization phase to \textbf{configure} devices (set their attributes).
+During simulation only device instances act (the known exception is hot-plug).
 
+        \vspace{0.3em}
 A typical layout with 1-to-1 device-component correspondence:
 
 \begin{tikzpicture}
@@ -1108,18 +1146,18 @@ In simplest case there are no components for a device, so its
 platform \p{platf} will have to instantiate and configure the device:
 
 \begin{tikzpicture}
-    \node[block, fill=lightgray] (b) {\p{block_b} (DML device)};
-    \node[above of=b] (bm) {\p{block-b} module};
+    \node[block, fill=lightgray] (x) {\p{block_x} (DML device)};
+    \node[above of=x] (xm) {\p{block-x} module};
     \node[draw, fill=gray, fill opacity=0.5, inner xsep=3mm,
-          inner ysep=1mm, fit=(b)(bm)] (am) {};
+          inner ysep=1mm, fit=(x)(xm)] (am) {};
     
-    \node[block, right=1cm of b, fill=lightgray, text width=4cm] (pc) 
+    \node[block, right=1cm of x, fill=lightgray, text width=4cm] (pc) 
         {\p{platf}_comp (Python class)};
     \node[above of=pc] (pcm) {\p{platf}-comp module};
     \node[draw, fill=gray, fill opacity=0.5, inner xsep=1mm,
           inner ysep=1mm, fit=(pc)(pcm)] (cm) {};
     
-    \draw[-triangle 45] (pc)-- (b) node[midway,right,rotate=90]{configure};
+    \draw[-triangle 45] (pc)-- (x) node[midway,right,rotate=90]{configure};
 \end{tikzpicture}
 
 There can be a module with 1 component and many classes:
@@ -1149,7 +1187,7 @@ There can be a module with 1 component and many classes:
           \end{code}
   \end{itemize}
 
-\subsection{Components vs functions}
+\subsection{Components vs standalone devices}
 
 Components/connectors are used:
 \begin{itemize}
@@ -1191,6 +1229,12 @@ A typical structure of component class code:
         \ind \class component(StandardComponent.component):
         \vshort{\ind ...}
 \end{code}
+
+Imagine we want to connect 2 components with their corresponding devices,
+where block_b has an \emph{Up} connector \cod[lightCyan]{eth0} and
+block_a has a \emph{Down} connector \cod[yellow]{eth0}:
+
+\includegraphics[width=\linewidth]{diagrams/two_device_example.pdf}
 
 Let us examine initialization of modules $\longrightarrow$ components
 $\longrightarrow$ devices for this sample program:
@@ -1268,7 +1312,7 @@ The corresponding break down of functions that are normally
 
 Copyright \copyright\ 2021—2022 Andrey Makarov \\
 \href{https://github.com/a-mr/simics-cheatsheet}{https://github.com/a-mr/simics-cheatsheet}
-Version 0.2 (Simics 6.0.116)
+Version 0.3 (Simics 6.0.116)
 
 \ifdefined\cheatsheetCompact
 \end{multicols*}

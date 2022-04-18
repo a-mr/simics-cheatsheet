@@ -4,7 +4,8 @@
               top=0.7cm,bottom=0.7cm]{geometry}
 \else
   \documentclass[12pt]{extarticle}
-  \usepackage[a4paper,xetex,top=1.5cm,bottom=2cm]{geometry}
+  \usepackage[a4paper,xetex,left=3cm,right=3cm,
+              top=1.5cm,bottom=2cm]{geometry}
 \fi
 
 \usepackage{titlesec}
@@ -161,13 +162,23 @@ line/.style={-latex},
 
 % definition for drawing arrow
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
-\newcommand{\DrawBottomReverse}[2]{%
+
+\newcommand{\DrawBottomReverse}[4]{%
   \begin{tikzpicture}[overlay,remember picture,-latex,shorten >=5pt,shorten
       <=5pt,out=225,in=315]
-      \draw[distance=0.45cm,#1] (a.south) to node[right,xshift=1.1cm]{#2}
-      (b.south);
+      \draw[distance=0.45cm,#1] (#2.south) to node[right,xshift=1.1cm]{#4}
+      (#3.south);
   \end{tikzpicture}
 }
+
+\newcommand{\DrawTopBottom}[4]{%
+  \begin{tikzpicture}[overlay,remember picture,-latex,shorten >=5pt,shorten
+      <=5pt,out=340,in=20]
+      \draw[distance=0.45cm,#1] (#2.east) to node[right,xshift=0.1cm]{#4}
+      (#3.east);
+  \end{tikzpicture}
+}
+
 
 \newtcolorbox{prebox}[1][]{
     left=0.5mm, right=0.5mm, top=0mm, bottom=0mm,
@@ -229,21 +240,20 @@ line/.style={-latex},
 
 \fontdimen2\font=0.6ex% inter word space
 
+% fancy line breaks
+\newcommand{\lbreak}{\hfill\textcolor{red}{\Large \raisebox{-0.2em}{$↩$}}\\\ind}
+\ifdefined\cheatsheetCompact
+\newcommand{\condbreak}{\lbreak}
+\else
+\newcommand{\condbreak}{}
+\fi
+
 % This document specific declarations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\local}{\kw{local} }
 \newcommand{\class}{\kw{class} }
 \usepackage{underscore}  % underscore is often used in code here
 \newcommand{\Simics}{\textcolor{cyan}{\textbf{Simics}}}
 
-\newlength{\connectwidth}
-\newlength{\implementwidth}
-\ifdefined\cheatsheetCompact
-\setlength{\connectwidth}{3.5cm}
-\setlength{\implementwidth}{2.5cm}
-\else
-\setlength{\connectwidth}{5cm}
-\setlength{\implementwidth}{5cm}
-\fi
 \newlength{\MyLen}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -261,7 +271,7 @@ line/.style={-latex},
     %\begin{center} \textbf{\Large \Simics{} Cheat Sheet} \end{center}
 
 \ifdefined\cheatsheetCompact
-\vspace{0.2cm}
+\vspace{0.1cm}
 \fi
 
 \section{\Simics{} Usage (command line)}
@@ -301,26 +311,18 @@ line/.style={-latex},
     Below \prompt stands for Unix shell prompt, \sprompt for \Simics{} prompt.
     \p{Big_italic} text means user-supplied arguments for commands/functions.
 
-\subsection{Getting help}
-\begin{code}
-    \cmt{Get help on some command:}
-    \sprompt{help \p{instantiate-components}}
-    \cmt{Finding sections of documentation mentioning it:}
-    \sprompt{apropos \p{instantiate-components}}
-\end{code}
-
 \subsection{Set up a workspace with platform package}
     \begin{code}
         \prompt \p{path/to/simics-base}/bin/project-setup\ \ .
         \prompt bin/addon-manager -c  \cmt{remove default package associations}
-        \cmt{allow scripts \& shared libraries be found:}
-        \prompt bin/addon-manager -s /path/to/platform-package
-        \prompt bin/addon-manager -s /path/to/additional/package
+        \cmt{Allow scripts \& shared libraries be found:}
+        \prompt bin/addon-manager -s \p{/path/to/platform-package}
+        \prompt bin/addon-manager -s \p{/path/to/additional/package}
     \end{code}
 
 \subsection{Start up}
     \begin{code}
-        \prompt ./simics targets/\p{platf/platf.simics}
+        \prompt ./simics targets/\p{platform/platform.simics}
     \end{code}
 
     
@@ -383,7 +385,7 @@ line/.style={-latex},
 
     To debug chain of called auxiliary scripts \cod{include}s:
     \begin{code}
-        \prompt ./simics -script-trace targets/\p{platf/platf.simics}
+        \prompt ./simics -script-trace targets/\p{platform/platform.simics}
     \end{code}
 
 \subsection{Commands for running simulation}
@@ -391,6 +393,9 @@ line/.style={-latex},
 \sprompt c[ontinue]
 \sprompt r[un] 100 cycles \ind \cmt{or 10 steps or 0.1 seconds}
 \sprompt ptime [-all] \ind \cmt{to show target's time}
+\sprompt print-event-queue \ind \cmt{show all pending events (e.g. timers)}
+\cmt{To know CPU/clock which advances time for the device (and executes events):}
+\sprompt \p{platform.myDevice}->queue
 \end{code}
 
 \subsection{Printing device structure}
@@ -406,55 +411,54 @@ and \textit{devices}) of a given component \p{myPlatform}:
 \begin{code}
     \cmt{1-level representation: immediate children \p{myPlatform}:}
     \sprompt list-objects namespace = \p{myPlatform}
-    \cmt{multi-level one: all children of \p{myPlatform} with all hierarchy:}
+    \cmt{Multi-level one: all children of \p{myPlatform} with all hierarchy:}
     \sprompt list-objects namespace = \p{myPlatform} -tree
 \end{code}
 
 To find all objects with the same class as given device:
         \begin{code}
             \begin{code}
-            \sprompt \p{platf.myDevice}->classname
-            \p{my_class}
+            \sprompt \p{platform.myDevice}->classname
+            \textbf{myClass}
             \end{code}
-            \sprompt list-objects -all \p{my_class}
-            \sprompt list-objects -all class = \p{my_class}
+            \sprompt list-objects -all \p{myClass}
+            \sprompt list-objects -all class = \p{myClass}
         \end{code}
 
 \subsection{Registers}
 \begin{code}
-    \cmt{print all registers:}
-    \sprompt print-device-regs \p{platf.myDevice}
-    \cmt{print fields of register \p{myRegister}:}
-    \sprompt print-device-reg-info \p{platf.myDevice.myBank.myRegister}
+    \cmt{Print all registers:}
+    \sprompt print-device-regs \p{platform.myDevice}
+    \cmt{Print fields of register \p{myRegister}:}
+    \sprompt print-device-reg-info \condbreak \p{platform.myDevice.myBank.myRegister}
 \end{code}
 
 \subsubsection{Writing/reading with side effects}
 
 \begin{code}
-    \sprompt write-device-reg
-    \ind \ind \p{platf.myDev}.bank.\p{myBank.myGrp.myReg} 0x1
-    \cmt{(Register groups like \p{myGrp} may be omitted in devices)}
-    \sprompt read-device-reg \p{platf.myDev}.bank.\p{myBank.myGrp.myReg}
+    \sprompt write-device-reg \lbreak \p{platform.myDevice}.bank.\p{Bank.Group.myRegister} 0x1
+    \cmt{(register groups like \p{myGrp} may be omitted in devices)}
+    \sprompt read-device-reg \condbreak \p{platform.myDevice}.bank.\p{Bank.Group.myRegister}
 \end{code}
 
 %\subsubsection{Writing/reading \textbf{without} side effects (aka set/get)}
 \subsubsection{Writing/reading {\bseries without} side effects (aka set/get)}
 
 \begin{code}
-    \cmt{You can use set-device-reg / get-device-reg.}
-    \cmt{Or do it through attributes, e.g. to set to value 0x1:}
-    \p{platf.myDev}->\p{myBank_myGrp_myReg} = 0x1
+    \cmt{You can use set-device-reg / get-device-reg...}
+    \cmt{...or do it through attributes, e.g. to set to value 0x1:}
+    \p{platform.myDevice}->\p{Bank_Group_register} = 0x1
     \cmt{To get the value:}
-    \p{platf.myDev}->\p{myBank_myGrp_myReg}
+    \p{platform.myDevice}->\p{Bank_Group_register}
 \end{code}
 
 \subsection{Connects — attributes that point to other devices}
 
 \begin{code}
-    \cmt{to set connect attribute:}
-    \sprompt \p{platf.myDevice}->\p{myConnect} = "\p{platf.anotherDevice}"
-    \cmt{to zero connect attribute:}
-    \sprompt \p{platf.myDevice}->\p{myConnect} = FALSE \ind\cmt{obvious ;-)}
+    \cmt{To set a connect attribute:}
+    \sprompt \p{platform.myDevice}->\p{myConnect} = \p{"platform.Device2"}
+    \cmt{To zero connect attribute:}
+    \sprompt \p{platform.myDevice}->\p{myConnect} = FALSE \ind\cmt{obvious ;-)}
 \end{code}
 
 \subsection{Device information: static}
@@ -462,7 +466,7 @@ To find all objects with the same class as given device:
 \begin{code}
     \cmt{To find info about class/module/package for your device:}
     \begin{code}
-    \sprompt help \p{platf.myDev}
+    \sprompt help \p{platform.myDevice}
     \ind Class \textbf{myClass}
     \vspace{0.3em} \ind Provided By
     \ind \ind   \textbf{myModule} (from \textbf{myPackage})
@@ -473,31 +477,21 @@ To find all objects with the same class as given device:
 
     \cmt{To list all classes provided by a module:}
     \sprompt list-classes -m \p{myModule}
-    \cmt{Configuration information}
-    \sprompt \p{platf.myDev}.info
+    \cmt{Configuration information:}
+    \sprompt \p{platform.myDevice}.info
 \end{code}
 
 \subsection{Device information: dynamic}
 
 \begin{code}
     \cmt{Runtime information:}
-    \sprompt \p{platf.myDev}.status
+    \sprompt \p{platform.myDevice}.status
     \cmt{pretty-print device attributes with values:}
-    \sprompt list-attributes \p{platf.myDev}
+    \sprompt list-attributes \p{platform.myDevice}
     \cmt{to search all attributes/registers containing \p{mem}:}
-    list-attributes \p{platf.myDevice} substr = \p{mem}
+    list-attributes \p{platform.myDevice} substr = \p{mem}
 \end{code}
 
-
-\subsection{Debugger commands}
-To use \Simics{} to debug target:
-\begin{code}
-dis[assemble] \cmt{show assembler commands at current address}
-
-\cmt{Break points:}
-break address
-break-hap Core-Magic-Instruction
-\end{code}
 
 \subsection{Memory spaces}
 
@@ -508,7 +502,31 @@ hierarchy of memory spaces:
 
 \begin{code}
     \cmt{To find memory spaces the device is mapped in:}
-    \sprompt devs \p{platf.myDevice}
+    \sprompt devs \p{platform.myDevice}
+\end{code}
+
+\subsection{Getting help}
+\begin{code}
+    \cmt{Get help on some command:}
+    \sprompt{help \p{instantiate-components}}
+    \cmt{Finding sections of documentation mentioning it:}
+    \sprompt{apropos \p{instantiate-components}}
+    \cmt{To open Simics Documentation in browser run from workspace:}
+    \prompt ./documentation \ind \cmt{or .\textbackslash{}documentation.bat on Windows}
+\end{code}
+
+\subsection{Debugger commands}
+To use \Simics{} to debug target:
+\begin{code}
+    dis[assemble] \cmt{show assembler commands at current address}
+    \cmt{Set break point on physical memory access from current CPU:}
+    break \p{address} [-r] [-w] [-x] \cmt{-rw by default}
+    \cmt{To break from specific CPU:}
+    \p{cpu.phys_mem}.break \p{address} [-r] [-w] [-x]
+    \cmt{To break on access from any memory space to \p{myDevice}:}
+    break-io \p{myDevice} \p{Bank} \p{Offset} \p{Length}
+    \cmt{To break on specific conditions, "HAP"s:}
+    break-hap Core-Magic-Instruction \cmt{run \cod{list-haps} for options}
 \end{code}
 
 \subsection{Examining current state}
@@ -548,7 +566,7 @@ Save logs from current point
     \sprompt start-command-line-capture \p{filename}
 \end{code}
 
-Save simics variables to file
+To save simics variables to a file:
 \begin{code}
     \sprompt start-command-line-capture \p{filename}
     \sprompt list-variables
@@ -564,21 +582,23 @@ Save simics variables to file
 
 %\subsection{Making images}
 
+\subsection{Creating components dynamically (for hot plug)}
+\begin{code}
+\sprompt create-myDevice-comp "\p{platform.myDeviceComp}"
+\sprompt connect \p{platform.myDeviceComp.connectorName} \lbreak \p{platform.Device2.connectorName}
+\sprompt instantiate-components
+\end{code}
+
 \subsection{Miscellaneous}
 \begin{code}
-    \cmt{To dump network packages (for analysis with Wireshark)}:
+    \cmt{To dump network packages (for analysis with Wireshark):}
     \sprompt pcap-dump link=\p{ethernet_switch0} filename=\p{myFile}
 \end{code}
 
 \begin{code}
-    \cmt{Treat all input as Python code}
+    \cmt{Treat all input as Python code:}
     \sprompt python-mode
-        \sprompt \sprompt \sprompt \p{Enter your code}
-\end{code}
-
-\begin{code}
-    \cmt{To open Simics Documentation in browser run from workspace:}
-    \prompt ./documentation \ind \cmt{Or .\textbackslash{}documentation.bat on Windows}
+        \sprompt \sprompt \sprompt \p{Enter your Python code}
 \end{code}
 
 \ifdefined\cheatsheetCompact
@@ -631,9 +651,9 @@ The header of \p{example-dev}.dml is then:
     %\begin{tabular}{p{3cm}p{\linewidth-3.8cm}}
     \rowcolors{1}{}{}
     \noindent\begin{tabular}{ll}
-        dml 1.4;                  & \cmtd{Obligatory .dml header} \\
-        \kw{device} \p{example_dev};  & \cmtd{Class name.} \\
-                                  & \cmtd{Note: - changed to underscore _}
+        dml 1.4;                  & \cmtd{obligatory .dml header} \\
+        \kw{device} \p{example_dev};  & \cmtd{class name.} \\
+                                  & \cmtd{Note: \cod{-} changed to underscore \cod{_}}
     \end{tabular}
 \end{code}
 
@@ -659,17 +679,17 @@ Assignments are equivalent to casts and hence can truncate:
 
         All aritmetic operators like $+$, $*$ convert its operands to int64:
         \begin{code}
-            \local \ty{uint16} $i$ = 0x7fff; \local \ty{int8} $j$ = 2;  \cmtd{let us sum them:}
+            \local \ty{uint16} $i$ = 0x7fff; \local \ty{int8} $j$ = 2;  \cmtd{Let us sum them:}
             \vspace{0.1cm}
-            \local \ty{int16} \tikzmark{b} $x$ = $\overbrace{\ind i + j; \ind }^{\text{calculates as \ty{int64} $\rightarrow$ 0x8001} \tikzmark{a}}$ \DrawBottomReverse{black}{truncates to \ty{int16}}
+            \local \ty{int16} \tikzmark{b} $x$ = $\overbrace{\ind i + j; \ind }^{\text{calculates as \ty{int64} $\rightarrow$ 0x8001} \tikzmark{a}}$ \DrawBottomReverse{black}{a}{b}{truncates to \ty{int16}}
             \vspace{0.3cm}
-            \cmtd{finally results in $x == 1$}
+            \cmtd{finally results in $x == 1$.}
         \end{code}
 
 
 \subsubsection{Comparisons act as uint64 or int64: $==$, $<$, $<=$}
-Comparisons on only uint64 act as proper uint64, however
-in comparisons int64 vs. uint64 the operands are converted to int64!
+        Comparisons on only \ty{uint64} act as proper \ty{uint64}, however
+        in comparisons \ty{int64} vs. \ty{uint64} the operands are converted to \ty{int64}!
 
         \begin{code}
             \local \ty{uint64} u;
@@ -689,7 +709,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \begin{code}
         \cmtd{Printing through \kw{log} statements:}
         \kw{log} \p{log-type}, $\underbrace{level}_{\makebox[0pt]{\text{default 1\hspace{0.5cm}}}}$, $\underbrace{groups}_{\makebox[0pt]{\hspace{1.7cm}\text{default 0 (no group)}}}$: \p{"format-string"}, $arg_1$, ..., $arg_N$;
-        \cmtd{(The "format-string" is the same as in C, see `man 3 printf')}
+        \cmtd{(the "format-string" is the same as in C, see `man 3 printf')}
     \end{code}
     \global\rownum=0\relax
     \noindent\begin{tabulary}{\linewidth}{|LL|}
@@ -720,9 +740,9 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \begin{code}
         \cmtd{Dynamic allocation (like malloc() in C):}
         \local \ty{$type$ *} x = \kw{new} \ty{$type$};
-        \cmtd{e.g. for int array:}
+        \cmtd{E.g. for int array:}
         \local \ty{int *} x = \kw{new} \ty{int[100]};
-        \kw{delete} x;  \cmtd{Deallocation like free() in C}
+        \kw{delete} x;  \cmtd{deallocation like free() in C}
         \cmtd{Raising/catching exceptions:}
         \kw{try} \{
             \ind \kw{throw;}  \cmtd{YES, no data can be carried by exception}
@@ -735,25 +755,25 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
     \begin{code}
         sizeof $value$  \cmtd{: int — get byte size of the value}
         sizeoftype \ty{$type$}  \cmtd{: int — get byte size of the type}
-        x[10:8]  \cmtd{Get bits 10—8 of integer $x$:}
-        x[8]  \cmtd{Get bit 8 of integer $x$:}
+        x[10:8]  \cmtd{get bits 10—8 of integer $x$:}
+        x[8]  \cmtd{get bit 8 of integer $x$:}
     \end{code}
 
     \subsubsection{Scalar types}
-    \ty{uint1}...\ty{uint64} and \ty{int1}...\ty{int64} (+ aliases:
-    \ty{int} $→$ \ty{int32}, \ty{char} $→$ \ty{int8}).
+    DML-specific: \ty{uint1}...\ty{uint64} and \ty{int1}...\ty{int64} (+ aliases:
+    \ty{int} $→$ \ty{int32}, \ty{char} $→$ \ty{int8}),
+    \ty{uint8_be/le_t} ... \ty{uint64_be/le_t}.
     \\
-    C-like types: \ty{size_t}, \ty{uintptr_t}, \ty{uint8_be/le_t} ... \ty{uint64_be/le_t},
-    \ty{double}, \ty{bool}.
+    C-like types: \ty{size_t}, \ty{uintptr_t}, \ty{double}, \ty{bool}.
 
     \subsubsection{Derived types}
     \begin{code}
         \kw{typedef} \underline{\kw{struct} \{ \p{member declarations;} \}} \p{typeName};
-        \cmtd{Layout members can be only whole-byte (\ty{int8}, \ty{int16}, ...)}:
+        \cmtd{Layout members can be only whole-byte (\ty{int8}, \ty{int16}, ...):}
         \kw{typedef} \underline{\kw{layout} "big-endian" \{ \p{member declarations;} \}} \p{typeName};
         \cmtd{Bitfield size \p{sizeBits} can be 1 ... 64 and field size arbitrary:}
         \kw{typedef} \underline{\kw{bitfields} \p{sizeBits} \{}
-            \ind \underline{\ty{uint3}  a @ [31:29];} \ind \cmtd{An example}
+            \ind \underline{\ty{uint3}  a @ [31:29];} \ind \cmtd{just an example}
             \ind ...
         \underline{\}} \p{typeName};
         \cmtd{All the types can be used for variable definitions inline, e.g.:}
@@ -773,7 +793,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
             \ind \kw{local} \ty{$outputType_1$} $var_1$ = ...; \kw{local} \ty{$outputType_2$} $var_2$ = ...;
             \ind return $(var_1, var_2)$;
         \}
-        \cmtd{calling this method:}
+        \cmtd{Calling this method:}
         \kw{local} \ty{$inputType_1$} val = ...;
         \kw{local} \ty{$outputType_1$} x; \kw{local} \ty{$outputType_2$} y;
         (x, y) = \p{name}(val);
@@ -828,7 +848,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
         SIM_INTERFACE(\p{sample}) \{  \cmtd{essentially '\kw{typedef struct}' also}
             \ind \ty{\p{out_type}} (*\p{name})(\ty{conf_object_t *}\hl{obj}, \ty{\p{$type_1$}} \p{$value_1$});
         \}
-        \#define \p{SAMPLE}_INTERFACE "\p{sample}" \ind \cmtd{necessary!}
+        \kw{\#define} \p{SAMPLE}_INTERFACE "\p{sample}" \ind \cmtd{necessary!}
     \end{code}
 
     Then it is called \textbf{without} \cod{\hl{obj}}: just \cod{\p{name}(\p{$value_1$})}.
@@ -842,6 +862,15 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
 
     \noindent\includegraphics[width=\linewidth]{diagrams/connect_implement.pdf}
 
+    \newlength{\connectwidth}
+    \newlength{\implementwidth}
+    \ifdefined\cheatsheetCompact
+    \setlength{\connectwidth}{3.4cm}
+    \setlength{\implementwidth}{2.5cm}
+    \else
+    \setlength{\connectwidth}{6.2cm}
+    \setlength{\implementwidth}{5cm}
+    \fi
     \global\rownum=1\relax
     %\begin{tabulary}{\linewidth}{|LCC|}
     %\begin{tabular}{|lp{2.5cm}c|}
@@ -877,7 +906,7 @@ in comparisons int64 vs. uint64 the operands are converted to int64!
                     \ind ...
                 \}
             \end{codem}
-            (as in picture above)
+            \underline{as in picture above}
             &
             \begin{codem}[\connectwidth]{magenta!35}
                 port $P_A$ \{
@@ -923,7 +952,7 @@ of an interface are really provided, defaulting to \kw{NULL}.
 If \p{device} \cod{implement}s interface $iface_1$ then its methouds
 can be invoked from \Simics{} command line via Python:
 \begin{code}
-    @conf.\p{platf.device}.iface.$iface_1$.$method_1$(\textit{argument_1}, ...)
+    @conf.\p{platform.device}.iface.$iface_1$.$method_1$(\textit{argument_1}, ...)
 \end{code}
 
 \subsection{Debugging with Gdb}
@@ -950,7 +979,7 @@ To debug simics and its modules itself:
 
         \begin{code}
             {\large\centering Back to terminal \#1:\par}
-            \sprompt run-command-file targets/\p{platf/platf.simics}
+            \sprompt run-command-file targets/\p{platform/platform.simics}
         \end{code}
 
 
@@ -1025,24 +1054,26 @@ of the same name.
 \subsection{Compile-time statements \& conditional compilation}
 
 \begin{code}
-    \kw{param} \p{p1} = 10; \cmtd{Non-overridable parameter}
-    \kw{param} \p{p2} default "value"; \cmtd{Overridable parameter}
-    template \p{myTemplate} \{
-        \ind param \p{p3}; \cmtd{undefined value — must be given on \p{myTemplate} instantiation}
+    \kw{param} \p{p1} = 10; \cmtd{non-overridable parameter}
+    \kw{param} \p{p2} default "value"; \cmtd{an overridable parameter}
+    \kw{template} \p{myTemplate} \{
+        \ind \cmtd{Undefined value — must be given}
+        \ind \cmtd{on \p{myTemplate} instantiation:}
+        \ind \kw{param} \p{p3};
         \vshort{\ind ...}
     \}
-    \cmtd{Compile-time \kw{if}}
-    \kw{\#if} (p1 == 20) \{
+    \cmtd{Compile-time \kw{if}:}
+    \kw{\#if} (\p{p1} == 20) \{
         \vshort{\ind ...}
     \} \kw{\#else \#if} \{
         \vshort{\ind ...}
     \} \kw{\#else} \{
         \vshort{\ind ...}
     \}
-    \cmtd{Compile-time ternary operator \kw{\#?} \kw{\#:}}
-    \kw{param} mode = p1 == 20 \kw{\#?} "equal 20" \kw{\#:} "not equal 20";
-    \cmtd{Represent \textit{value} of parameter as string}
-    \kw{param} p1_str = stringify(p1);  \cmtd{results in "10"}
+    \cmtd{Compile-time ternary operator \cod{\kw{\#?}} \cod{\kw{\#:}}\,:}
+    \kw{param} mode = \p{p1} == 20 \kw{\#?} "equal 20" \kw{\#:} "not equal 20";
+    \cmtd{Represent \textit{value} of parameter as string:}
+    \kw{param} p1_str = stringify(\p{p1});  \cmtd{results in "10"}
 \end{code}
 
 
@@ -1096,12 +1127,6 @@ It's possible to do most things in C, e.g. create device by
     \end{tabular}
 
 \includegraphics[width=\linewidth]{diagrams/classes_devices_components.pdf}
-\subsection{Creating devices dynamically}
-\begin{code}
-\sprompt create-myDevice-comp "\p{system.mydev}"
-\sprompt connect \p{system.mydev} {system.other.connect}
-\sprompt instantiate-components
-\end{code}
 
 \subsection{Modules/Components/Classes}
 A \Simics{} module includes classes, there are 2 types of them:
@@ -1143,7 +1168,7 @@ A typical layout with 1-to-1 device-component correspondence:
 \end{tikzpicture}
 
 In simplest case there are no components for a device, so its
-platform \p{platf} will have to instantiate and configure the device:
+\p{platform} will have to instantiate and configure the device:
 
 \begin{tikzpicture}
     \node[block, fill=lightgray] (x) {\p{block_x} (DML device)};
@@ -1152,8 +1177,8 @@ platform \p{platf} will have to instantiate and configure the device:
           inner ysep=1mm, fit=(x)(xm)] (am) {};
     
     \node[block, right=1cm of x, fill=lightgray, text width=4cm] (pc) 
-        {\p{platf}_comp (Python class)};
-    \node[above of=pc] (pcm) {\p{platf}-comp module};
+        {\p{platform}_comp (Python class)};
+    \node[above of=pc] (pcm) {\p{platform}-comp module};
     \node[draw, fill=gray, fill opacity=0.5, inner xsep=1mm,
           inner ysep=1mm, fit=(pc)(pcm)] (cm) {};
     
@@ -1175,19 +1200,7 @@ There can be a module with 1 component and many classes:
     \draw[-triangle 45] (x)-- (d) node[midway,left]{configure};
 \end{tikzpicture}
 
-\subsection{Connecting devices}
-  \begin{itemize}
-      \item from Script:
-          \begin{code}
-              platf.$device_1$->$connect_1$ = platf.$device_2$
-          \end{code}
-      \item from Python:
-          \begin{code}
-              conf.platf.$device_1$.$connect_1$ = conf.platf.$device_2$
-          \end{code}
-  \end{itemize}
-
-\subsection{Components vs standalone devices}
+\subsection{Components vs simple devices}
 
 Components/connectors are used:
 \begin{itemize}
@@ -1197,9 +1210,36 @@ Components/connectors are used:
         different packages independently
 \end{itemize}
 
+Otherwise use simple devices by just assigning \textit{connects} to
+\textit{implements} directly using \Simics{} Script or Python:
+\begin{code}
+    \sprompt platform.$device_1$->$connect_1$ = platform.$device_2$
+    @conf.platform.$device_1$.$connect_1$ = conf.platform.$device_2$
+\end{code}
+
 \mywarning Do not confuse: \textit{Connectors} connect \textit{component}
 objects, while \textit{connects} (+implements) connect \textit{device}
-objects. \cod{connect} command acts on connectors only!
+objects. The \cod{connect} command acts on (component) connectors only!
+
+\subsection{Creating devices in tests}
+
+\begin{code}
+    \p{x} = simics.pre_conf_object("\p{myDevice}", "\p{device_name}")
+    \p{x.some_required_attribute} = \p{y}
+    \ind\cmt{(where \p{y} can be another pre_conf_object)}
+    simics.SIM_add_configuration([\p{x}], None)
+\end{code}
+
+\subsection{Creating devices in components}
+
+\begin{code}
+    \kw{class} \p{Component_name}(Standard_component):
+    \ind \kw{def} add_objects(self):
+    \ind\ind \p{x} = self.add_pre_obj('\p{myDevice}', '\p{device_name}')
+    \ind\ind \p{x.some_required_attribute} = \p{y}
+\end{code}
+
+Then slot \p{myDevice} is created inside any instance of \p{Component_name}.
 
 \subsection{Structure and initialization order}
 
@@ -1211,9 +1251,9 @@ A typical structure of component class code:
             \vshort{\ind\ind ...}
         \ind \kw{def} __init__(self):
             \vshort{\ind\ind ...}
-        \ind \kw{def} setup(self):
+        \ind \kw{def} setup(self): \ind\ind\tikzmark{setup}
             \vshort{\ind\ind ...}
-        \ind \kw{def} add_objects(self):
+        \ind \kw{def} add_objects(self):\tikzmark{addobjects}\DrawTopBottom{black}{setup}{addobjects}{calls}
             \vshort{\ind\ind ...}
         \ind \class \p{attribute_name}(ConfigAttribute):
             \ind \ind \kw{def} _initialize(self):
@@ -1268,7 +1308,7 @@ The corresponding break down of functions that are normally
             }
         \end{minipage}
 
-    \item[\cod{\circled{4}}] The same for \cod{block_b_comp \& block_b}
+    \item[\cod{\circled{4}}] The same for \cod{block_b_comp} \& \cod{block_b}
 
     \item[\cod{\circled{5}}]
         \begin{minipage}[t]{\linewidth}
@@ -1312,7 +1352,7 @@ The corresponding break down of functions that are normally
 
 Copyright \copyright\ 2021—2022 Andrey Makarov \\
 \href{https://github.com/a-mr/simics-cheatsheet}{https://github.com/a-mr/simics-cheatsheet}
-Version 0.3 (Simics 6.0.116)
+Version 0.4 (Simics 6.0.116)
 
 \ifdefined\cheatsheetCompact
 \end{multicols*}
